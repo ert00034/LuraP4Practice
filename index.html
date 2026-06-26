@@ -95,6 +95,27 @@
     .dc-sender{font-size:12px;font-weight:700;color:#00aff4;margin-bottom:2px;}
     .dc-text{font-size:12px;color:#dcddde;line-height:1.4;}
     .dc-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+    /* LUA error dialog */
+    #lua-error{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      z-index:60;width:480px;max-width:calc(100vw - 32px);
+      background:#1a1208;border:2px solid #c8a020;border-radius:3px;
+      box-shadow:0 0 60px rgba(0,0,0,.98),0 0 0 1px #4a3800;
+      font-family:'Courier New',monospace;display:none;}
+    #lua-error.show{display:block;}
+    .lua-title{background:#3d2800;padding:6px 12px;font-size:13px;font-weight:700;
+      color:#ffd45a;border-bottom:1px solid #6a4800;letter-spacing:.06em;}
+    .lua-body{padding:12px;max-height:190px;overflow-y:auto;
+      font-size:11px;color:#dd9900;line-height:1.65;word-break:break-all;white-space:pre-wrap;}
+    .lua-footer{padding:8px 12px;border-top:1px solid #3a2800;display:flex;justify-content:flex-end;}
+    .lua-close-btn{background:#3d2800;border:1px solid #c8a020;color:#ffd45a;
+      padding:5px 20px;font:inherit;font-size:12px;cursor:pointer;border-radius:2px;}
+    .lua-close-btn:hover{background:#5a3c00;}
+    /* Death reaction */
+    #death-msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:38px;font-weight:900;text-align:center;z-index:5;pointer-events:none;
+      text-shadow:0 0 32px rgba(255,30,30,.95),0 3px 20px rgba(0,0,0,.95);
+      color:#ff5f86;opacity:0;transition:opacity .18s;white-space:nowrap;letter-spacing:.03em;}
+    #death-msg.show{opacity:1;}
     /* Cast bar */
     #castbar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
       width:340px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;}
@@ -204,6 +225,12 @@
     <div class="gc-header">⚔ GUILD CHAT</div>
     <div id="gc-messages"></div>
   </div>
+  <div id="lua-error">
+    <div class="lua-title">⚠ Interface\AddOns Error</div>
+    <div class="lua-body" id="lua-error-body"></div>
+    <div class="lua-footer"><button class="lua-close-btn" id="lua-close-btn">Close</button></div>
+  </div>
+  <div id="death-msg"></div>
   <div id="discord-notif">
     <div class="dc-icon">💬</div>
     <div style="min-width:0">
@@ -237,6 +264,9 @@
     const spSlotEls=[0,1,2].map(i=>document.getElementById(`sp${i}`));
     const castbarEl=document.getElementById("castbar"),castfillEl=document.getElementById("castfill");
     const scoreboardEl=document.getElementById("scoreboard");
+    const luaErrorEl=document.getElementById("lua-error"),luaErrorBodyEl=document.getElementById("lua-error-body");
+    const deathMsgEl=document.getElementById("death-msg");
+    document.getElementById("lua-close-btn").addEventListener("click",()=>{luaErrorEl.classList.remove("show");luaErrorShowing=false;});
 
     // ── Phase / world ────────────────────────────────────────────────────────
     const phase={
@@ -276,14 +306,28 @@
     let worldCupExpiry=-999,nextWorldCupTime=18;
     const WCGOALS=['⚽ World Cup Goal Scored!!!!','⚽ GOOOOOAL!!!!','⚽ HE SHOOTS HE SCORES!!!!','⚽ UNBELIEVABLE SCENES!!!!'];
     const chaoticSPLines=['RIGHT NO LEFT NO I MEAN LEFT','LEFT?? NO WAIT RIGHT!! LEFT!!!','WHICH SIDE AGAIN?? GO!! NOW!!','LEFT I THINK?? JUST MOVE!!'];
-    const GUILD_NAMES=['Ruby','Cydonion','Layelle','Boltern','Josh','Darktheist','Dizzypete','Catters','Max','Sessanelly','Slowbolts','Aratiel','Zafu','Convoke','Exality','Tarrackk','Unfortunate'];
+    const GUILD_NAMES=['Ruby','Cydonion','Layelle','Boltern','Josh','Darktheist','Dizzypete','Catters','Max','Sessanelly','Slowbolts','Aratiel','Zafu','Convoke','Exality','Tarrackk','Unfortunate','Stigdk','Girlstreamer','Fred','Klkl','Mox','Melwalor','Anaxstrasza','Sekrai','Zivvs','Jaffa','Desolate','Khiraen','Nordisk','Denarr','Tuulip','Luca','Silccu','Mikhe','Rquin','Kalse','Sproodle','Shadowdager','Itrinx','Yaela','Fester'];
+    const GUILD_FIXED={'Sekrai':'bad joke','Jaffa':'thats cooked actually','Fester':'🇫🇷'};
+    function guildResp(name,fallback){return GUILD_FIXED[name]||fallback;};
     const GUILD_RESPONSES=['omg','wtf','Good Riddance','wait what','nooo','the audacity','???','lmao','finally','I knew it','lol bye','carry diff','thank god','bruh','oof','not surprised','cya','drama queen','toxic tbh','expected','L + ratio','real ones know','this is fine','who tanks now','I called it','rip bozo','no way','was it something I said','lmaooo','the plot thickens','and they were our best dps too','ngl saw this coming','big yikes','free at last','don\'t let the door hit you','been months coming tbh','does officer know','wait when did they even join','pour one out','who does their role now','kicked or left?','classic','press F','F','insert surprised pikachu','honestly deserved','touched grass we assume','another one bites the dust','guild on life support at this point','RIP','we go again','bro really said bye mid progression'];
     const DISCORD_NAMES=['Josh','Layelle','Mum','Sarah','Dave','Conor','Alex','Catters','Boltern'];
     const DISCORD_MSGS=["Hey, you coming over later?","You left the fridge open","I'm thinking of quitting the game","Did you see the game last night?","Dinner's ready","You still owe me £20","Can you walk the dog?","Just found your cat on my roof","Meeting at 9am tomorrow","We need to talk","Your package arrived","Are you even listening?","I found your wallet","Stop ignoring me lol","Bro your car is blocking mine","Did you remember to take your meds?","Your parking ticket expires in 10 minutes","I think I scratched your car","The cat knocked everything off the shelf again","Can you pick up milk on the way home?","Why is there a horse in the front garden","Did you change the WiFi password??","Bro wake up new patch dropped","Your sister called again","I accidentally sent that to the group chat","The dishwasher is making that noise again","Did you pay the electricity bill","Your boss called the house phone","I think I failed my exam","The pizza arrived but I ate some of it","Why is there a tent in the living room","Someone keyed your car mate","I've been accepted into a cult, brb","Bro log off it's 3am","Your mum added me on Facebook","I'm outside your front door","Sorry wrong number","Did you feed the fish","There's a spider and I need you home NOW","I accidentally bought a boat","You've been selected for jury duty","I told everyone about that thing","Are you coming to Karen's wedding or not","My router keeps dropping, can I come over","Just remembered I still have your charger from 2019"];
     const CHAOS_MOVE_CALLS=['MOVE!!','WAIT!!','NO WAIT!!','GO!!','STOP!!','ACTUALLY MOVE!!'];
+    const DEATH_REACTIONS=["I wasn't even in it!","DESK SLAM","What are you doing?!?!?!","bro WHAT","ARE YOU KIDDING ME??","MY KEYBOARD","I HATE THIS GAME","hello???? wtf","unbelievable","that's a rage DC","NOT MY FAULT","I WAS MOVING","LAG","REPORTED","are you serious rn","TOUCH GRASS","I can't believe this","my poor chair"];
+    const LUA_ERRORS=[
+`Message: Interface\\FrameXML\\UIParent.lua:3092: attempt to index nil value 'self'\nstack traceback:\n[C]: ?\nInterface\\FrameXML\\UIParent.lua:3092: in function 'SetPoint'\nInterface\\AddOns\\RaidFrameHelper\\core.lua:887: in local 'UpdateRaidFrame'\nInterface\\AddOns\\RaidFrameHelper\\core.lua:1204: in function <...>\n...\n(tail call): ?`,
+`Message: Interface\\AddOns\\DBM-Core\\DBM-Core.lua:7341: attempt to perform arithmetic on nil value (global 'timerOffset')\nstack traceback:\n[C]: ?\nInterface\\AddOns\\DBM-Core\\DBM-Core.lua:7341: in method 'Start'\nInterface\\AddOns\\DBM-Raids-DF\\LuraP4.lua:448: in function 'COMBAT_LOG_EVENT_UNFILTERED'\n...\n(tail call): ?`,
+`Message: Interface\\AddOns\\WeakAuras\\RegionTypes\\Text.lua:512: table index is NaN\nstack traceback:\n[C]: ?\nInterface\\AddOns\\WeakAuras\\RegionTypes\\Text.lua:512: in function 'SetText'\nInterface\\AddOns\\WeakAuras\\WeakAuras.lua:2991: in function 'UpdateTriggerState'\n...\n(tail call): ?`,
+`Message: Interface\\FrameXML\\ActionButton.lua:234: Cannot find a library instance of 'LibStub-1.0'\nstack traceback:\n[C]: ?\nInterface\\AddOns\\ElvUI\\Core\\API.lua:234: in function 'Embed'\nInterface\\AddOns\\ElvUI\\Modules\\UnitFrames\\UF.lua:881: in function 'Initialize'\n...\n(tail call): ?`,
+`Message: Interface\\AddOns\\Plater\\Plater.lua:9042: attempt to call nil (method 'GetName')\nstack traceback:\n[C]: ?\nInterface\\AddOns\\Plater\\Plater.lua:9042: in method 'ApplyProfile'\nInterface\\AddOns\\Plater\\Plater.lua:1337: in function 'ADDON_LOADED'\n...\n(tail call): ?`,
+`Message: Interface\\AddOns\\Shadowed Unit Frames\\modules\\auras.lua:177: bad argument #1 to 'pairs' (table expected, got nil)\nstack traceback:\n[C]: in function 'pairs'\nInterface\\AddOns\\SUF\\modules\\auras.lua:177: in function 'UpdateAuras'\nInterface\\AddOns\\SUF\\units\\player.lua:44: in function 'FullUpdate'\n...\n(tail call): ?`];
+    const OFFLINE_RESPONSES=["during a pull?","ffs not again","every. single. time.","disconnect or rage?","classic","rip","pulled the plug lmao","not again bro","bruh","come on man","always at the worst time","we needed them"];
     let chaosMoveText='WAIT!!',nextChaosMoveFlip=-999;
     let gcQueue=[],gcDramaStart=-999,gcDramaActive=false,nextGuildDrama=22;
+    let nextOfflineTime=45;
     let dcExpiry=-999,nextDcTime=35;
+    let luaErrorShowing=false,nextLuaErrorTime=28;
+    let deathMsgExpiry=-999,lastDeathMsgTime=-999;
     const CHAOTIC_CORNERS=[
       {top:'90px',left:'16px',right:'auto',bottom:'auto'},
       {top:'90px',right:'270px',left:'auto',bottom:'auto'},
@@ -839,9 +883,14 @@
               showMessage('YOU GOT SLICED! −10','danger');break;}}
             // Chaotic: AI players hit by any shard vanish permanently
             if(chaoticCheck.checked){
+              let killedAny=false;
               aiPlayers.forEach((ai,idx)=>{
                 if(deadAI.has(idx)||!ai.mesh.visible)return;
-                for(const ang of angles){if(shardHitsPos(drops[si],ang,ai.currentPos,13)){deadAI.add(idx);ai.mesh.visible=false;break;}}});
+                for(const ang of angles){if(shardHitsPos(drops[si],ang,ai.currentPos,13)){deadAI.add(idx);ai.mesh.visible=false;killedAny=true;break;}}});
+              if(killedAny&&time-lastDeathMsgTime>2){
+                deathMsgEl.textContent=DEATH_REACTIONS[Math.floor(Math.random()*DEATH_REACTIONS.length)];
+                deathMsgEl.classList.add("show");
+                deathMsgExpiry=time+2.2;lastDeathMsgTime=time;}
             }}}}}
     function checkOnYouSP(t,stackPos){
       const cycle=activeStarsplinterCycle(t);if(!cycle)return;
@@ -996,7 +1045,7 @@
           const resps=[...GUILD_RESPONSES].sort(()=>Math.random()-.5);
           const count=4+Math.floor(Math.random()*5);
           gcQueue=[{name:leaver,text:'has left the guild.',type:'leave',delay:0,added:false}];
-          for(let i=0;i<count;i++)gcQueue.push({name:others[i],text:resps[i%resps.length],type:'resp',delay:(i+1)*.65+Math.random()*.4,added:false});
+          for(let i=0;i<count;i++)gcQueue.push({name:others[i],text:guildResp(others[i],resps[i%resps.length]),type:'resp',delay:(i+1)*.65+Math.random()*.4,added:false});
           gcDramaStart=time;gcDramaActive=true;gcMsgsEl.innerHTML='';guildChatEl.classList.add("show");
           nextGuildDrama=time+20+Math.random()*18;}
         if(gcDramaActive){
@@ -1007,6 +1056,8 @@
               const d=document.createElement('div');d.className='gc-msg';
               d.innerHTML=m.type==='leave'
                 ?`<span class="gc-name">${m.name}</span> <span class="gc-leave">${m.text}</span>`
+                :m.type==='offline'
+                ?`<span class="gc-name">${m.name}</span> <span style="color:#7a8ab0">${m.text}</span>`
                 :`<span class="gc-name">${m.name}</span>: <span class="gc-resp">${m.text}</span>`;
               gcMsgsEl.appendChild(d);}});
           const last=gcQueue[gcQueue.length-1];
@@ -1019,6 +1070,22 @@
           discordEl.classList.add("show");
           dcExpiry=time+5;nextDcTime=time+18+Math.random()*20;}
         if(time>dcExpiry)discordEl.classList.remove("show");
+        // LUA error popup
+        if(time>=nextLuaErrorTime&&!luaErrorShowing){
+          luaErrorBodyEl.textContent=LUA_ERRORS[Math.floor(Math.random()*LUA_ERRORS.length)];
+          luaErrorEl.classList.add("show");luaErrorShowing=true;
+          nextLuaErrorTime=time+25+Math.random()*22;}
+        // Gone offline guild event
+        if(time>=nextOfflineTime&&!gcDramaActive){
+          const name=GUILD_NAMES[Math.floor(Math.random()*GUILD_NAMES.length)];
+          const resps=[...OFFLINE_RESPONSES].sort(()=>Math.random()-.5).slice(0,1+Math.floor(Math.random()*2));
+          const others=[...GUILD_NAMES].filter(n=>n!==name).sort(()=>Math.random()-.5);
+          gcQueue=[{name,text:'has gone offline.',type:'offline',delay:0,added:false}];
+          resps.forEach((r,i)=>gcQueue.push({name:others[i],text:guildResp(others[i],r),type:'resp',delay:(i+1)*.9+Math.random()*.4,added:false}));
+          gcDramaStart=time;gcDramaActive=true;gcMsgsEl.innerHTML='';guildChatEl.classList.add("show");
+          nextOfflineTime=time+28+Math.random()*22;}
+        // Death message hide
+        if(time>deathMsgExpiry)deathMsgEl.classList.remove("show");
       }else{
         worldCupEl.classList.remove("show");
         guildChatEl.classList.remove("show");
@@ -1046,6 +1113,9 @@
       gcQueue=[];gcDramaActive=false;gcMsgsEl.innerHTML='';guildChatEl.classList.remove("show");nextGuildDrama=22+Math.random()*8;
       dcExpiry=-999;nextDcTime=35+Math.random()*10;discordEl.classList.remove("show");
       chaosMoveText='WAIT!!';nextChaosMoveFlip=-999;
+      luaErrorEl.classList.remove("show");luaErrorShowing=false;nextLuaErrorTime=28+Math.random()*12;
+      deathMsgEl.classList.remove("show");deathMsgExpiry=-999;lastDeathMsgTime=-999;
+      nextOfflineTime=45+Math.random()*10;
       scoreboardEl.classList.remove("show");
       running=true;playBtn.textContent="Pause";
       camera.position.set(0,CAM_H,-CAM_BACK*scale);last=performance.now();}
