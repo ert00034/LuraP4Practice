@@ -62,6 +62,39 @@
     #message.bad{color:#ff9f1c;}
     #message.alert{color:#fff;text-shadow:0 0 32px rgba(255,212,90,.9),0 2px 20px rgba(0,0,0,.95);}
 
+    /* Chaotic toggle */
+    .chaotic-row{margin-top:10px;padding-top:10px;border-top:1px solid rgb(255 255 255/10%);display:flex;align-items:flex-start;gap:8px;}
+    .chaotic-row input[type="checkbox"]{margin-top:2px;accent-color:#ff9f1c;width:15px;height:15px;flex-shrink:0;cursor:pointer;}
+    .chaotic-row label{font-size:11px;cursor:pointer;line-height:1.4;color:#ff9f1c;}
+    .chaotic-row label span{color:var(--muted);}
+    /* World Cup popup */
+    #worldcup{position:fixed;z-index:20;pointer-events:none;opacity:0;transition:opacity .15s;
+      font-size:18px;font-weight:900;color:#fff;text-shadow:0 0 18px rgba(255,165,0,.9),0 2px 12px rgba(0,0,0,.9);
+      background:rgb(10 20 5/88%);border:2px solid #ffcc00;border-radius:8px;padding:8px 14px;
+      max-width:220px;line-height:1.3;}
+    #worldcup.show{opacity:1;}
+    /* Guild chat */
+    #guildchat{position:fixed;left:16px;bottom:130px;width:270px;z-index:6;pointer-events:none;
+      background:rgb(4 6 14/82%);border:1px solid rgb(255 255 255/14%);border-radius:6px;
+      opacity:0;transition:opacity .3s;max-height:200px;display:flex;flex-direction:column;overflow:hidden;}
+    #guildchat.show{opacity:1;}
+    .gc-header{font-size:10px;font-weight:700;padding:4px 8px;color:#aaa;border-bottom:1px solid rgb(255 255 255/10%);letter-spacing:.1em;}
+    #gc-messages{padding:4px 8px 6px;font-size:11px;line-height:1.65;overflow:hidden;}
+    .gc-msg{animation:gcfade .25s ease-in;}
+    @keyframes gcfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+    .gc-name{color:#ffd45a;font-weight:700;}
+    .gc-leave{color:#8888aa;}
+    .gc-resp{color:#4dcc4d;}
+    /* Discord notification */
+    #discord-notif{position:fixed;right:16px;bottom:80px;width:270px;z-index:6;pointer-events:none;
+      background:rgb(28 29 33/96%);border:1px solid rgb(255 255 255/12%);border-radius:8px;
+      padding:10px 12px;display:flex;gap:10px;align-items:flex-start;
+      opacity:0;transition:opacity .2s;box-shadow:0 6px 24px rgb(0 0 0/50%);}
+    #discord-notif.show{opacity:1;}
+    .dc-app{font-size:10px;color:#72767d;margin-bottom:2px;letter-spacing:.06em;}
+    .dc-sender{font-size:12px;font-weight:700;color:#00aff4;margin-bottom:2px;}
+    .dc-text{font-size:12px;color:#dcddde;line-height:1.4;}
+    .dc-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
     /* Cast bar */
     #castbar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
       width:340px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s;}
@@ -160,7 +193,25 @@
       <label for="helper">Show movement helper (SP target ring)<br>
         <strong>⚠ Enabled: score ×0.5 per second</strong></label>
     </div>
+    <div class="chaotic-row">
+      <input type="checkbox" id="chaotic">
+      <label for="chaotic">🔥 CHAOTIC FINAL PHASE ATTEMPT<br>
+        <span>Surprise callouts · Raid dies · 1.3pts/s · ⚽</span></label>
+    </div>
   </aside>
+  <div id="worldcup"></div>
+  <div id="guildchat">
+    <div class="gc-header">⚔ GUILD CHAT</div>
+    <div id="gc-messages"></div>
+  </div>
+  <div id="discord-notif">
+    <div class="dc-icon">💬</div>
+    <div style="min-width:0">
+      <div class="dc-app">Discord — Direct Message</div>
+      <div class="dc-sender" id="dc-sender">Josh</div>
+      <div class="dc-text" id="dc-text">Hey, you coming over later?</div>
+    </div>
+  </div>
 
   <div class="legend">
     <strong>White:</strong> you &nbsp;|&nbsp; <strong>Blue:</strong> raid &nbsp;|&nbsp;
@@ -177,7 +228,10 @@
     const clockEl=document.getElementById("clock"),stateEl=document.getElementById("state"),cycleEl=document.getElementById("cycle");
     const scorePillEl=document.getElementById("scorepill");
     const playBtn=document.getElementById("play"),restartBtn=document.getElementById("restart"),speedInput=document.getElementById("speed");
-    const helperCheck=document.getElementById("helper");
+    const helperCheck=document.getElementById("helper"),chaoticCheck=document.getElementById("chaotic");
+    const worldCupEl=document.getElementById("worldcup");
+    const guildChatEl=document.getElementById("guildchat"),gcMsgsEl=document.getElementById("gc-messages");
+    const discordEl=document.getElementById("discord-notif"),dcSenderEl=document.getElementById("dc-sender"),dcTextEl=document.getElementById("dc-text");
     const raidcallEl=document.getElementById("raidcall"),movecallEl=document.getElementById("movecall");
     const movecountdownEl=document.getElementById("movecountdown"),messageEl=document.getElementById("message");
     const spSlotEls=[0,1,2].map(i=>document.getElementById(`sp${i}`));
@@ -217,6 +271,24 @@
     const checkedExplosions=new Set(),checkedLasers=new Set();
     let messageExpiry=0;
     let lastMunchTime=-999,lastMidnightTime=-999;
+    // Chaotic mode state
+    const deadAI=new Set();
+    let worldCupExpiry=-999,nextWorldCupTime=18;
+    const WCGOALS=['⚽ World Cup Goal Scored!!!!','⚽ GOOOOOAL!!!!','⚽ HE SHOOTS HE SCORES!!!!','⚽ UNBELIEVABLE SCENES!!!!'];
+    const chaoticSPLines=['RIGHT NO LEFT NO I MEAN LEFT','LEFT?? NO WAIT RIGHT!! LEFT!!!','WHICH SIDE AGAIN?? GO!! NOW!!','LEFT I THINK?? JUST MOVE!!'];
+    const GUILD_NAMES=['Ruby','Cydonion','Layelle','Boltern','Josh','Darktheist','Dizzypete','Catters','Max','Sessanelly','Slowbolts','Aratiel','Zafu','Convoke','Exality','Tarrackk','Unfortunate'];
+    const GUILD_RESPONSES=['omg','wtf','Good Riddance','wait what','nooo','the audacity','???','lmao','finally','I knew it','lol bye','carry diff','thank god','bruh','oof','not surprised','cya','drama queen','toxic tbh','expected','L + ratio','real ones know','this is fine','who tanks now','I called it','rip bozo','no way','was it something I said','lmaooo','the plot thickens','and they were our best dps too','ngl saw this coming','big yikes','free at last','don\'t let the door hit you','been months coming tbh','does officer know','wait when did they even join','pour one out','who does their role now','kicked or left?','classic','press F','F','insert surprised pikachu','honestly deserved','touched grass we assume','another one bites the dust','guild on life support at this point','RIP','we go again','bro really said bye mid progression'];
+    const DISCORD_NAMES=['Josh','Layelle','Mum','Sarah','Dave','Conor','Alex','Catters','Boltern'];
+    const DISCORD_MSGS=["Hey, you coming over later?","You left the fridge open","I'm thinking of quitting the game","Did you see the game last night?","Dinner's ready","You still owe me £20","Can you walk the dog?","Just found your cat on my roof","Meeting at 9am tomorrow","We need to talk","Your package arrived","Are you even listening?","I found your wallet","Stop ignoring me lol","Bro your car is blocking mine","Did you remember to take your meds?","Your parking ticket expires in 10 minutes","I think I scratched your car","The cat knocked everything off the shelf again","Can you pick up milk on the way home?","Why is there a horse in the front garden","Did you change the WiFi password??","Bro wake up new patch dropped","Your sister called again","I accidentally sent that to the group chat","The dishwasher is making that noise again","Did you pay the electricity bill","Your boss called the house phone","I think I failed my exam","The pizza arrived but I ate some of it","Why is there a tent in the living room","Someone keyed your car mate","I've been accepted into a cult, brb","Bro log off it's 3am","Your mum added me on Facebook","I'm outside your front door","Sorry wrong number","Did you feed the fish","There's a spider and I need you home NOW","I accidentally bought a boat","You've been selected for jury duty","I told everyone about that thing","Are you coming to Karen's wedding or not","My router keeps dropping, can I come over","Just remembered I still have your charger from 2019"];
+    const CHAOS_MOVE_CALLS=['MOVE!!','WAIT!!','NO WAIT!!','GO!!','STOP!!','ACTUALLY MOVE!!'];
+    let chaosMoveText='WAIT!!',nextChaosMoveFlip=-999;
+    let gcQueue=[],gcDramaStart=-999,gcDramaActive=false,nextGuildDrama=22;
+    let dcExpiry=-999,nextDcTime=35;
+    const CHAOTIC_CORNERS=[
+      {top:'90px',left:'16px',right:'auto',bottom:'auto'},
+      {top:'90px',right:'270px',left:'auto',bottom:'auto'},
+      {bottom:'120px',left:'16px',top:'auto',right:'auto'},
+      {bottom:'120px',right:'270px',left:'auto',top:'auto'}];
     // Score
     let score=0;
     const penalties={sliceOthers:0,sliced:0,munched:0,midnight:0,zapped:0,wrongSide:0};
@@ -493,7 +565,7 @@
       if(t>=a.soakedUntil){
         const away=norm2(sub2(a.pos,soaker));
         a.dir=norm2(rotate2(a.dir,clamp(angularDelta(angleOf(a.dir),angleOf(away)),-Math.PI/4,Math.PI/4)));}
-      a.soakedUntil=t+1.5;a.lastSoakedAt=t;}
+      a.soakedUntil=t+2.0;a.lastSoakedAt=t;}
     function spawnAdd(t,wave){
       const a=rand()*Math.PI*2,s=polar(a,world.bossRadius+8);
       const mesh=new THREE.Mesh(new THREE.SphereGeometry(wave?.52:.42,18,12),wave?mPink:mPurp);
@@ -706,8 +778,8 @@
       if(!running)return;
       const inLight=len2(sub2(playerPos,stackPos))<=world.lightRadius;
       if(inLight){
-        const rate=helperCheck.checked?.5:1;
-        const gain=rate*dt*Number(speedInput.value);
+        const base=chaoticCheck.checked?1.3:(helperCheck.checked?.5:1);
+        const gain=base*dt*Number(speedInput.value);
         score+=gain;safeAccum+=gain;}}
 
     function gradeScore(s){
@@ -764,7 +836,13 @@
             const angles=shardAnglesForDrop(stackPos,drops[si],orientB);
             for(const ang of angles){if(shardHitsPos(drops[si],ang,playerPos)){
               score-=10;penalties.sliced=(penalties.sliced||0)+10;
-              showMessage('YOU GOT SLICED! −10','danger');break;}}}}}}
+              showMessage('YOU GOT SLICED! −10','danger');break;}}
+            // Chaotic: AI players hit by any shard vanish permanently
+            if(chaoticCheck.checked){
+              aiPlayers.forEach((ai,idx)=>{
+                if(deadAI.has(idx)||!ai.mesh.visible)return;
+                for(const ang of angles){if(shardHitsPos(drops[si],ang,ai.currentPos,13)){deadAI.add(idx);ai.mesh.visible=false;break;}}});
+            }}}}}
     function checkOnYouSP(t,stackPos){
       const cycle=activeStarsplinterCycle(t);if(!cycle)return;
       const playerSP=getCycleAssignment(cycle.index);
@@ -772,8 +850,12 @@
       const key=`onyou-${cycle.index}`;
       if(t>=apply&&t<apply+.15&&!checkedExplosions.has(key)){
         checkedExplosions.add(key);
-        const dirs=['⬅ LEFT','RIGHT ➡','⬅ LEFT'];
-        showMessage(`ON YOU — ${dirs[playerSP]}`,'alert',3.5);}}
+        if(chaoticCheck.checked){
+          const line=chaoticSPLines[Math.floor(Math.random()*chaoticSPLines.length)];
+          showMessage(line,'bad',1.0);
+        }else{
+          const dirs=['⬅ LEFT','RIGHT ➡','⬅ LEFT'];
+          showMessage(`ON YOU — ${dirs[playerSP]}`,'alert',3.5);}}}
     function checkZap(t){
       const h=currentHeaven(t);if(!h||t<h.laserStart)return;
       const key=`laser-${h.index}`;if(checkedLasers.has(key))return;
@@ -799,16 +881,40 @@
     // ── HUD / Raid call ───────────────────────────────────────────────────────
     function updateRaidCall(t){
       const countdown=heavenCountdownAt(t);
-      movecallEl.classList.toggle("show",Boolean(countdown));
-      if(countdown)movecountdownEl.textContent=Math.max(1,Math.ceil(countdown.remaining));
-      const cycle=activeStarsplinterCycle(t);
-      if(cycle&&t>=cycle.start-1.5){
-        raidcallEl.classList.add("show");
-        spSlotEls.forEach((el,i)=>{
-          const apply=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+i*phase.starsApplyGap;
-          const retEnd=apply+phase.starsExplosionDelay+phase.returnDuration;
-          el.classList.toggle("stepping",t>=apply&&t<=retEnd);});
-      }else raidcallEl.classList.remove("show");
+      const heaven=currentHeaven(t);
+      const chaotic=chaoticCheck.checked;
+      if(chaotic){
+        // SP bar hidden in chaos
+        raidcallEl.classList.remove("show");
+        // Movement call: flip MOVE/WAIT during countdown, GO GO GO during ramp
+        if(countdown){
+          if(t>=nextChaosMoveFlip){
+            chaosMoveText=CHAOS_MOVE_CALLS[Math.floor(Math.random()*CHAOS_MOVE_CALLS.length)];
+            nextChaosMoveFlip=t+0.32+Math.random()*0.48;}
+          movecallEl.querySelector('.movelabel').textContent=chaosMoveText;
+          movecountdownEl.textContent='';
+          movecallEl.classList.add("show");
+        }else if(heaven&&t<heaven.laserStart){
+          movecallEl.querySelector('.movelabel').textContent='MOVE GO GO GO';
+          movecountdownEl.textContent='⚡⚡';
+          movecallEl.classList.add("show");
+        }else{
+          movecallEl.classList.remove("show");
+        }
+      }else{
+        movecallEl.classList.toggle("show",Boolean(countdown));
+        if(countdown){
+          movecallEl.querySelector('.movelabel').textContent='MOVE IN';
+          movecountdownEl.textContent=Math.max(1,Math.ceil(countdown.remaining));}
+        const cycle=activeStarsplinterCycle(t);
+        if(cycle&&t>=cycle.start-1.5){
+          raidcallEl.classList.add("show");
+          spSlotEls.forEach((el,i)=>{
+            const apply=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+i*phase.starsApplyGap;
+            const retEnd=apply+phase.starsExplosionDelay+phase.returnDuration;
+            el.classList.toggle("stepping",t>=apply&&t<=retEnd);});
+        }else raidcallEl.classList.remove("show");
+      }
       if(time>messageExpiry)messageEl.className='';}
     function updateHud(t){
       const stars=activeStarsplinterCycle(t),heaven=currentHeaven(t);
@@ -873,6 +979,52 @@
         checkMunch(time,stackPos);
         checkMidnight(time,stackPos);}
 
+      // ── Chaotic mode overlays ────────────────────────────────────────────────
+      if(chaoticCheck.checked&&running){
+        // World cup
+        if(time>=nextWorldCupTime){
+          const c=CHAOTIC_CORNERS[Math.floor(Math.random()*4)];
+          Object.assign(worldCupEl.style,{top:c.top,left:c.left,right:c.right,bottom:c.bottom});
+          worldCupEl.textContent=WCGOALS[Math.floor(Math.random()*WCGOALS.length)];
+          worldCupEl.classList.add("show");
+          worldCupExpiry=time+3;nextWorldCupTime=time+12+Math.random()*14;}
+        if(time>worldCupExpiry)worldCupEl.classList.remove("show");
+        // Guild drama
+        if(time>=nextGuildDrama&&!gcDramaActive){
+          const leaver=GUILD_NAMES[Math.floor(Math.random()*GUILD_NAMES.length)];
+          const others=[...GUILD_NAMES].filter(n=>n!==leaver).sort(()=>Math.random()-.5);
+          const resps=[...GUILD_RESPONSES].sort(()=>Math.random()-.5);
+          const count=4+Math.floor(Math.random()*5);
+          gcQueue=[{name:leaver,text:'has left the guild.',type:'leave',delay:0,added:false}];
+          for(let i=0;i<count;i++)gcQueue.push({name:others[i],text:resps[i%resps.length],type:'resp',delay:(i+1)*.65+Math.random()*.4,added:false});
+          gcDramaStart=time;gcDramaActive=true;gcMsgsEl.innerHTML='';guildChatEl.classList.add("show");
+          nextGuildDrama=time+20+Math.random()*18;}
+        if(gcDramaActive){
+          const el=time-gcDramaStart;
+          gcQueue.forEach(m=>{
+            if(!m.added&&el>=m.delay){
+              m.added=true;
+              const d=document.createElement('div');d.className='gc-msg';
+              d.innerHTML=m.type==='leave'
+                ?`<span class="gc-name">${m.name}</span> <span class="gc-leave">${m.text}</span>`
+                :`<span class="gc-name">${m.name}</span>: <span class="gc-resp">${m.text}</span>`;
+              gcMsgsEl.appendChild(d);}});
+          const last=gcQueue[gcQueue.length-1];
+          if(last.added&&time-gcDramaStart>last.delay+5){guildChatEl.classList.remove("show");gcDramaActive=false;}
+        }
+        // Discord notifications
+        if(time>=nextDcTime){
+          dcSenderEl.textContent=DISCORD_NAMES[Math.floor(Math.random()*DISCORD_NAMES.length)];
+          dcTextEl.textContent=DISCORD_MSGS[Math.floor(Math.random()*DISCORD_MSGS.length)];
+          discordEl.classList.add("show");
+          dcExpiry=time+5;nextDcTime=time+18+Math.random()*20;}
+        if(time>dcExpiry)discordEl.classList.remove("show");
+      }else{
+        worldCupEl.classList.remove("show");
+        guildChatEl.classList.remove("show");
+        discordEl.classList.remove("show");
+        gcDramaActive=false;}
+
       boss.rotation.y+=dt*.35;
       renderer.render(scene,camera);
       requestAnimationFrame(frame);}
@@ -889,6 +1041,11 @@
       playerPos={x:0,y:-world.stackDistance};
       messageExpiry=0;messageEl.className='';lastMunchTime=-999;lastMidnightTime=-999;
       score=0;safeAccum=0;Object.keys(penalties).forEach(k=>penalties[k]=0);scoreboardShown=false;
+      deadAI.clear();aiPlayers.forEach(ai=>ai.mesh.visible=true);
+      worldCupExpiry=-999;nextWorldCupTime=18+Math.random()*8;worldCupEl.classList.remove("show");
+      gcQueue=[];gcDramaActive=false;gcMsgsEl.innerHTML='';guildChatEl.classList.remove("show");nextGuildDrama=22+Math.random()*8;
+      dcExpiry=-999;nextDcTime=35+Math.random()*10;discordEl.classList.remove("show");
+      chaosMoveText='WAIT!!';nextChaosMoveFlip=-999;
       scoreboardEl.classList.remove("show");
       running=true;playBtn.textContent="Pause";
       camera.position.set(0,CAM_H,-CAM_BACK*scale);last=performance.now();}
