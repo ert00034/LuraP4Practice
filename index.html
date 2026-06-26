@@ -78,6 +78,10 @@
     .mode-normal:hover{background:rgb(133 216 255/14%);}
     .mode-chaotic{border-color:#ff9f1c;color:#ff9f1c;}
     .mode-chaotic:hover{background:rgb(255 159 28/14%);}
+    /* Penalty flash */
+    #penalty-flash{position:fixed;inset:0;z-index:3;pointer-events:none;
+      background:rgba(220,0,0,0.4);opacity:0;transition:opacity .22s ease-out;}
+    #penalty-flash.on{opacity:1;transition:none;}
     /* Reintegration hint */
     #reint-hint{position:fixed;top:52%;left:50%;transform:translate(-50%,-50%);
       font-size:15px;font-weight:600;color:#85d8ff;text-align:center;z-index:4;pointer-events:none;
@@ -194,6 +198,7 @@
       <span class="mode-desc">Distractions · Raid dies · 1.15× score</span>
     </button>
   </div>
+  <div id="penalty-flash"></div>
   <div id="reint-hint">During re-integration, move to the<br>stack point at the north of the room.</div>
   <div id="scene"></div>
   <div class="hud">
@@ -220,6 +225,7 @@
   <div id="scoreboard">
     <div class="score-card">
       <h2>Phase Complete</h2>
+      <div style="text-align:center;font-size:11px;letter-spacing:.1em;margin-bottom:4px;opacity:.6" id="smode">NORMAL</div>
       <div class="score-grade" id="sgrade">A+</div>
       <div class="score-pts">Score: <strong id="sfinal">0</strong></div>
       <div class="score-breakdown">
@@ -306,6 +312,8 @@
     const luaErrorEl=document.getElementById("lua-error"),luaErrorBodyEl=document.getElementById("lua-error-body");
     const deathMsgEl=document.getElementById("death-msg");
     const reintHintEl=document.getElementById("reint-hint");
+    const penaltyFlashEl=document.getElementById("penalty-flash");
+    let prevScore=0,penaltyFlashExpiry=-999;
     const modeSelectEl=document.getElementById("mode-select");
     document.getElementById("lua-close-btn").addEventListener("click",()=>{luaErrorEl.classList.remove("show");luaErrorShowing=false;});
 
@@ -322,12 +330,12 @@
       tankConeDelay:1.55,tankConeDuration:2.5
     };
     const world={
-      roomRadius:285,bossRadius:36,stackDistance:168,
-      offTankDistance:150,lightRadius:75,shardLength:112,coneLength:136
+      roomRadius:285,bossRadius:36,stackDistance:134,
+      offTankDistance:126,lightRadius:60,shardLength:90,coneLength:136
     };
     const scale=0.052;
     const splinterSides=[1,-1,1];
-    const splinterProfiles=[{tangential:58,radial:16},{tangential:72,radial:18},{tangential:70,radial:12}];
+    const splinterProfiles=[{tangential:46,radial:13},{tangential:58,radial:14},{tangential:56,radial:10}];
     const immunityColors=[0xaad372,0xffd45a,0xff89c2];
     const MARKER_COLORS=[0xffdd00,0xff8c00,0xaa44ff,0x44ff88];
     const CAM_BACK=160,CAM_H=9.5;
@@ -434,8 +442,8 @@
 
     // ── Three.js ─────────────────────────────────────────────────────────────
     const scene=new THREE.Scene();
-    scene.background=new THREE.Color(0x060812);
-    scene.fog=new THREE.Fog(0x060812,18,50);
+    scene.background=new THREE.Color(0x02030a);
+    scene.fog=new THREE.Fog(0x02030a,18,50);
     const camera=new THREE.PerspectiveCamera(54,innerWidth/innerHeight,.1,130);
     const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(innerWidth,innerHeight);
@@ -550,11 +558,11 @@
 
     // ── Floor / room ──────────────────────────────────────────────────────────
     const floorMesh=new THREE.Mesh(new THREE.CylinderGeometry(world.roomRadius*scale,world.roomRadius*scale,.05,160),
-      new THREE.MeshStandardMaterial({color:0x14172a,roughness:.84,metalness:.05}));
+      new THREE.MeshStandardMaterial({color:0x05060d,roughness:.92,metalness:.02}));
     floorMesh.position.y=-.04;scene.add(floorMesh);
-    scene.add(makeRing(world.roomRadius,0xffffff,.16,.025));
-    const floorLineMat=new THREE.LineBasicMaterial({color:0x85d8ff,transparent:true,opacity:.15});
-    for(let r=55;r<=world.roomRadius-30;r+=38){const rg=makeRing(r,0x85d8ff,.1,.012);rg.position.y=.025;scene.add(rg);}
+    scene.add(makeRing(world.roomRadius,0xffffff,.08,.022));
+    const floorLineMat=new THREE.LineBasicMaterial({color:0x85d8ff,transparent:true,opacity:.06});
+    for(let r=55;r<=world.roomRadius-30;r+=38){const rg=makeRing(r,0x85d8ff,.04,.010);rg.position.y=.025;scene.add(rg);}
     for(let i=0;i<24;i++){const a=i*Math.PI/12;
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([w2v(polar(a,42),.035),w2v(polar(a,world.roomRadius-10),.035)]),floorLineMat));}
 
@@ -564,10 +572,15 @@
     boss.position.set(0,world.bossRadius*scale,0);scene.add(boss);
 
     // ── Light zone ────────────────────────────────────────────────────────────
-    const lightRing=makeRing(world.lightRadius,0x85d8ff,.95,.075);scene.add(lightRing);
-    const stackGlow=makeRing(23,0x85d8ff,.92,.055);scene.add(stackGlow);
+    const lightRing=makeRing(world.lightRadius,0x55ccff,1.0,.10);scene.add(lightRing);
+    const lightRingGlow=makeRing(world.lightRadius,0x88ddff,.28,.22);scene.add(lightRingGlow);
+    const stackGlow=makeRing(14,0xff9900,.85,.048);scene.add(stackGlow);
+    // Warm disc: red inner fading to yellow — two layered discs
+    const lightDiscRed=new THREE.Mesh(new THREE.CircleGeometry(world.lightRadius*scale*.55,64),
+      new THREE.MeshBasicMaterial({color:0xff2200,transparent:true,opacity:.32,side:THREE.DoubleSide}));
+    lightDiscRed.rotation.x=-Math.PI/2;lightDiscRed.position.y=.022;lightDiscRed.visible=false;scene.add(lightDiscRed);
     const lightDisc=new THREE.Mesh(new THREE.CircleGeometry(world.lightRadius*scale,64),
-      new THREE.MeshBasicMaterial({color:0xffee66,transparent:true,opacity:.09,side:THREE.DoubleSide}));
+      new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:.26,side:THREE.DoubleSide}));
     lightDisc.rotation.x=-Math.PI/2;lightDisc.position.y=.02;lightDisc.visible=false;scene.add(lightDisc);
 
     // ── OT cylinder + cone ────────────────────────────────────────────────────
@@ -584,13 +597,13 @@
     // ── 17 AI cylinders ───────────────────────────────────────────────────────
     const aiPlayers=[];
     {const offsets=[];
-      [[5,6],[10,7],[16,4]].forEach(([r,n],ri)=>{
+      [[2,6],[4,7],[7,4]].forEach(([r,n],ri)=>{
         for(let j=0;j<n;j++){const a=j*(2*Math.PI/n)+ri*.55;offsets.push({x:Math.cos(a)*r,y:Math.sin(a)*r});}});
       for(let i=0;i<17;i++){
         const isSP=i<3,col=isSP?0x5599ff:0x4466bb,emis=isSP?0x102244:0x0a1122;
         const mesh=makeCyl(col,emis,.18,.18,.65);scene.add(mesh);
         aiPlayers.push({mesh,spIndex:isSP?i:null,baseOffset:offsets[i]||{x:0,y:0},
-          wobblePhase:i*.91,wobbleAmp:1.6,currentPos:{x:0,y:-world.stackDistance}});}}
+          wobblePhase:i*.91,wobbleAmp:0.7,currentPos:{x:0,y:-world.stackDistance}});}}
 
     // ── Player ────────────────────────────────────────────────────────────────
     const playerCyl=makeCyl(0xffffff,0x999999,.22,.22,.74);
@@ -792,7 +805,7 @@
               if(t>=explode&&t<explode+.36){
                 const p=smooth(clamp((t-explode)/.36,0,1));
                 const tp=add2(playerPos,polar(angle,world.shardLength*p));
-                pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=angle;}
+                pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=Math.PI/2-angle;}
               li++;}}else li+=6;
         }else{
           const delay=i===2?getCycleSP2Delay(cycle.index):0;
@@ -815,7 +828,7 @@
               if(st.exploding){
                 const p=smooth(clamp((t-st.explode)/.36,0,1));
                 const tp=add2(st.pos,polar(angle,world.shardLength*p));
-                pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=angle;}
+                pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=Math.PI/2-angle;}
               li++;}}else li+=6;}}}
 
     // ── Heaven beam ───────────────────────────────────────────────────────────
@@ -853,9 +866,10 @@
 
     // ── World markers ─────────────────────────────────────────────────────────
     function updateWorldMarkers(t){
+      const stunEnd=phase.reintegrationCast+phase.stunDuration;
       worldMarkers.forEach((m,i)=>{
         const arr=markerArrivalTime(i),f0=arr-.5,f1=arr+1.8;
-        if(t>=f1){m.mesh.visible=m.ring.visible=false;return;}
+        if(t>=f1||(i===0&&t>stunEnd)){m.mesh.visible=m.ring.visible=false;return;}
         m.mesh.visible=m.ring.visible=true;
         const alpha=t>=f0?1-smooth((t-f0)/(f1-f0)):1;
         m.mat.opacity=.5*alpha;m.ringMat.opacity=.85*alpha;
@@ -906,6 +920,10 @@
     function showScoreboard(){
       const rounded=Math.round(score);
       const gr=gradeScore(rounded);
+      const modeLabels={easy:'⭐ EASY MODE',normal:'NORMAL',chaotic:'🔥 CHAOTIC PHASE 4 ATTEMPT'};
+      const smodeEl=document.getElementById("smode");
+      smodeEl.textContent=modeLabels[selectedMode]||'NORMAL';
+      smodeEl.style.color=selectedMode==='chaotic'?'#ff9f1c':selectedMode==='easy'?'#a8e563':'var(--muted)';
       document.getElementById("sgrade").textContent=gr.g;
       document.getElementById("sgrade").className=`score-grade ${gr.cls}`;
       document.getElementById("sfinal").textContent=`${rounded} pts — ${gr.desc}`;
@@ -982,7 +1000,7 @@
         showMessage('YOU GOT ZAPPED! −100','danger');checkedLasers.add(key);}}
     function checkMunch(t,stackPos){
       if(t-lastMunchTime<3)return;
-      if(len2(sub2(playerPos,stackPos))<28)return;// safe inside stack circle
+      if(len2(sub2(playerPos,stackPos))<18)return;// safe inside stack circle
       for(const a of adds){
         if(a.wave||t<a.soakedUntil)continue;
         if(len2(sub2(playerPos,a.pos))<14){
@@ -1064,10 +1082,12 @@
 
       if(dur)playerPos={...stackPos};
 
-      stackGlow.visible=lightRing.visible=lightDisc.visible=showRaid;
+      stackGlow.visible=lightRing.visible=lightRingGlow.visible=lightDisc.visible=lightDiscRed.visible=showRaid;
       stackGlow.position.copy(w2v(stackPos,.05+liftY));
       lightRing.position.copy(w2v(stackPos,.06+liftY));
+      lightRingGlow.position.copy(w2v(stackPos,.06+liftY));
       lightDisc.position.set(stackPos.x*scale,.02+liftY,stackPos.y*scale);
+      lightDiscRed.position.set(stackPos.x*scale,.022+liftY,stackPos.y*scale);
 
       otCyl.visible=showRaid;otCyl.position.copy(w2v(otPos,.36+liftY));
 
@@ -1087,6 +1107,9 @@
       updateCastBar(time);
       updateCamera(liftY);
       reintHintEl.classList.toggle("show",time<phase.reintegrationCast&&running);
+      if(score<prevScore)penaltyFlashExpiry=time+0.15;
+      penaltyFlashEl.classList.toggle("on",time<penaltyFlashExpiry);
+      prevScore=score;
       updateRaidCall(time);
       updateHud(time);
       if(aft){
@@ -1199,6 +1222,7 @@
       gcEggExpiry=-999;pendingGcReplies=[];buildEasterEggSchedule();
       scoreboardEl.classList.remove("show");
       reintHintEl.classList.remove("show");
+      prevScore=0;penaltyFlashExpiry=-999;penaltyFlashEl.classList.remove("on");
       modeSelectEl.style.display='flex';
       running=false;playBtn.textContent="Pause";
       camera.position.set(0,CAM_H,-CAM_BACK*scale);last=performance.now();}
