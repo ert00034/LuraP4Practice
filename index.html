@@ -489,8 +489,10 @@
       return{x:lerp(active.x,home.x,rp),y:lerp(active.y,home.y,rp)};}
     function soakAdd(a,t,soaker){
       if(t-a.lastSoakedAt<1.2)return;
-      const away=norm2(sub2(a.pos,soaker));
-      a.dir=norm2(rotate2(a.dir,clamp(angularDelta(angleOf(a.dir),angleOf(away)),-Math.PI/4,Math.PI/4)));
+      // Only redirect on first soak — already-white adds keep their heading
+      if(t>=a.soakedUntil){
+        const away=norm2(sub2(a.pos,soaker));
+        a.dir=norm2(rotate2(a.dir,clamp(angularDelta(angleOf(a.dir),angleOf(away)),-Math.PI/4,Math.PI/4)));}
       a.soakedUntil=t+1.5;a.lastSoakedAt=t;}
     function spawnAdd(t,wave){
       const a=rand()*Math.PI*2,s=polar(a,world.bossRadius+8);
@@ -509,6 +511,9 @@
         a.pos=add2(a.pos,add2(mul2(a.dir,a.speed*dt),mul2(w,Math.sin(t*2.2+a.wobble)*2.1*dt)));
         if(len2(sub2(a.pos,otp))<22)soakAdd(a,t,otp);
         if(currentHeaven(t)&&len2(sub2(a.pos,ip))<20)soakAdd(a,t,ip);
+        // Soaked adds: 20% per second chance of a small random direction nudge
+        if(t<a.soakedUntil&&Math.random()<0.2*dt)
+          a.dir=norm2(rotate2(a.dir,(Math.random()-.5)*Math.PI*.3));
         a.mesh.material=t<a.soakedUntil?mWhite:(a.wave?mPink:mPurp);
         a.mesh.position.copy(w2v(a.pos,a.wave?.52:.42));}
       adds=adds.filter(a=>{const keep=len2(a.pos)<world.roomRadius+40&&len2(sub2(a.pos,sp))>7;if(!keep)scene.remove(a.mesh);return keep;});}
