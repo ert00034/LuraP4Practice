@@ -230,7 +230,7 @@
     function getCycleAssignment(i){if(!(i in cycleAssignments))cycleAssignments[i]=Math.floor(Math.random()*3);return cycleAssignments[i];}
     function getCycleOrientation(i){if(!(i in cycleOrientations))cycleOrientations[i]=Math.random()<.5?1:0;return cycleOrientations[i];}
     // SP2 bot sometimes hesitates ~1s before moving out (50% chance per cycle)
-    function getCycleSP2Delay(i){if(!(i in cycleDelays))cycleDelays[i]=Math.random()<.5?0.7+Math.random()*.6:0;return cycleDelays[i];}
+    function getCycleSP2Delay(i){if(!(i in cycleDelays))cycleDelays[i]=0.7+Math.random()*.6;return cycleDelays[i];}
 
     // ── Three.js ─────────────────────────────────────────────────────────────
     const scene=new THREE.Scene();
@@ -425,12 +425,14 @@
     // ── Shard cylinders ───────────────────────────────────────────────────────
     // Shard: tapered — thick at player end (radiusBottom/-Y), needle tip at far end (radiusTop/+Y)
     // Two layers: bright cyan inner + dark blue outer glow
-    const shardInnerMat=new THREE.MeshBasicMaterial({color:0xaaeeff,transparent:true,opacity:.97});
-    const shardOuterMat=new THREE.MeshBasicMaterial({color:0x1033cc,transparent:true,opacity:.52});
+    const shardInnerMat=new THREE.MeshBasicMaterial({color:0xaaeeff,transparent:true,opacity:.97,depthWrite:false});
+    const shardOuterMat=new THREE.MeshBasicMaterial({color:0x1033cc,transparent:true,opacity:.52,depthWrite:false});
     const shardInners=Array.from({length:18},()=>{
-      const m=new THREE.Mesh(new THREE.CylinderGeometry(.004,.082,1,7),shardInnerMat);m.visible=false;scene.add(m);return m;});
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.004,.082,1,7),shardInnerMat);
+      m.visible=false;m.renderOrder=2;scene.add(m);return m;});
     const shardOuters=Array.from({length:18},()=>{
-      const m=new THREE.Mesh(new THREE.CylinderGeometry(.018,.15,1,7),shardOuterMat);m.visible=false;scene.add(m);return m;});
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.018,.15,1,7),shardOuterMat);
+      m.visible=false;m.renderOrder=1;scene.add(m);return m;});
     function setShardCyl(idx,a,b){
       orientCylBetween(shardInners[idx],w2v(a,.12),w2v(b,.12));
       orientCylBetween(shardOuters[idx],w2v(a,.12),w2v(b,.12));}
@@ -605,7 +607,7 @@
               setShardCyl(li,st.pos,end);
               if(st.exploding){
                 const p=smooth(clamp((t-st.explode)/.36,0,1));
-                const tp=add2(st.drop,polar(angle,world.shardLength*p));
+                const tp=add2(st.pos,polar(angle,world.shardLength*p));
                 pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=angle;}
               li++;}}else li+=6;}}}
 
@@ -756,8 +758,9 @@
       if(len2(sub2(playerPos,beamTip2d))<32){
         score-=100;penalties.zapped=(penalties.zapped||0)+100;
         showMessage('YOU GOT ZAPPED! −100','danger');checkedLasers.add(key);}}
-    function checkMunch(t){
+    function checkMunch(t,stackPos){
       if(t-lastMunchTime<3)return;
+      if(len2(sub2(playerPos,stackPos))<28)return;// safe inside stack circle
       for(const a of adds){
         if(a.wave||t<a.soakedUntil)continue;
         if(len2(sub2(playerPos,a.pos))<14){
@@ -844,7 +847,7 @@
         checkExplosions(time,stackPos);
         checkOnYouSP(time,stackPos);
         checkZap(time);
-        checkMunch(time);
+        checkMunch(time,stackPos);
         checkMidnight(time,stackPos);}
 
       boss.rotation.y+=dt*.35;
