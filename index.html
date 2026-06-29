@@ -78,24 +78,77 @@
     .mode-normal:hover{background:rgb(133 216 255/14%);}
     .mode-chaotic{border-color:#ff9f1c;color:#ff9f1c;}
     .mode-chaotic:hover{background:rgb(255 159 28/14%);}
+    /* Role selector */
+    #role-step,#diff-step{display:flex;flex-direction:column;align-items:center;gap:14px;}
+    .role-btn{width:280px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;
+      border:2px solid;cursor:pointer;text-align:left;transition:all .15s;background:transparent;font-family:inherit;}
+    .role-btn .role-title{display:block;font-size:14px;}
+    .role-btn .role-desc{display:block;font-size:11px;font-weight:400;margin-top:3px;opacity:.75;}
+    .role-dps{border-color:#85d8ff;color:#85d8ff;}.role-dps:hover{background:rgb(133 216 255/14%);}
+    .role-light{border-color:#ffe066;color:#ffe066;}.role-light:hover{background:rgb(255 224 102/14%);}
+    .role-tank{border-color:#ff7a45;color:#ff7a45;}.role-tank:hover{background:rgb(255 122 69/14%);}
+    .step-back{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;
+      font-family:inherit;padding:4px 8px;text-decoration:underline;margin-top:-4px;}
+    .step-back:hover{color:#fff;}
+    .eab-row{display:flex;align-items:center;gap:8px;}
+    .eab-row label{font-size:12px;color:var(--muted);}
+    .eab-key-btn{width:38px;height:38px;border-radius:6px;border:2px solid #ff7a45;
+      background:rgb(255 122 69/12%);color:#ff7a45;font-size:13px;font-weight:700;
+      cursor:pointer;font-family:inherit;}
+    .eab-key-btn.capturing{border-color:#fff;color:#fff;animation:blink .5s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+    /* EAB cooldown icon */
+    #eab-icon{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+      z-index:5;display:none;flex-direction:column;align-items:center;gap:4px;}
+    #eab-icon.show{display:flex;}
+    #eab-icon canvas{border-radius:8px;border:2px solid #ff7a45;display:block;}
+    #eab-label{font-size:10px;color:#ff7a45;font-weight:700;letter-spacing:.08em;}
+    /* Defensive charges */
+    #def-charges{position:fixed;bottom:88px;left:calc(50% + 64px);
+      z-index:5;display:none;flex-direction:column;align-items:center;gap:4px;}
+    #def-charges.show{display:flex;}
+    #def-pips{display:flex;gap:4px;}
+    .def-pip{width:14px;height:14px;border-radius:3px;border:2px solid #66aaff;background:rgb(102 170 255/35%);}
+    .def-pip.spent{border-color:#333;background:transparent;}
+    #def-key-label{font-size:10px;color:#66aaff;font-weight:700;letter-spacing:.08em;}
+    /* Defensive bar */
+    #def-bar-wrap{position:fixed;top:25%;left:50%;transform:translateX(-50%);
+      width:320px;z-index:5;display:none;flex-direction:column;align-items:center;gap:4px;}
+    #def-bar-wrap.show{display:flex;}
+    .def-bar-label{font-size:12px;font-weight:700;color:#66aaff;letter-spacing:.1em;text-shadow:0 0 12px rgba(100,180,255,.6);}
+    .def-track{width:100%;height:14px;background:rgb(0 0 0/55%);border:1px solid rgb(100 170 255/35%);border-radius:4px;overflow:hidden;}
+    #def-fill{height:100%;width:100%;background:linear-gradient(90deg,#3399ff,#88ccff);border-radius:4px;transition:width .1s linear;}
     /* Penalty flash */
     #penalty-flash{position:fixed;inset:0;z-index:3;pointer-events:none;
       background:rgba(220,0,0,0.4);opacity:0;transition:opacity .22s ease-out;}
     #penalty-flash.on{opacity:1;transition:none;}
+    /* Starsplinter flash — blue edge vignette */
+    #sp-flash{position:fixed;inset:0;z-index:3;pointer-events:none;
+      box-shadow:inset 0 0 110px 30px rgba(60,170,255,0.7);opacity:0;transition:opacity .55s ease-out;}
+    #sp-flash.on{opacity:1;transition:none;}
     /* Reintegration hint */
     #reint-hint{position:fixed;top:52%;left:50%;transform:translate(-50%,-50%);
       font-size:15px;font-weight:600;color:#85d8ff;text-align:center;z-index:4;pointer-events:none;
       background:rgb(4 8 24/85%);border:1px solid rgb(133 216 255/28%);border-radius:8px;
       padding:11px 22px;opacity:0;transition:opacity .4s;line-height:1.6;max-width:420px;}
     #reint-hint.show{opacity:1;}
+    /* Stun-phase role hints */
+    #stun-hints{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      z-index:12;pointer-events:none;display:flex;flex-direction:column;
+      align-items:center;gap:14px;width:min(680px,90vw);}
+    .hint-line{font-size:19px;font-weight:700;color:#fff;text-align:center;
+      text-shadow:0 2px 18px rgba(0,0,0,.95),0 0 40px rgba(100,180,255,.2);
+      background:rgb(4 8 24/82%);border:1px solid rgb(133 216 255/22%);
+      border-radius:9px;padding:10px 22px;opacity:0;line-height:1.35;
+      width:100%;box-sizing:border-box;}
     /* Chaotic toggle */
     .chaotic-row{margin-top:10px;padding-top:10px;border-top:1px solid rgb(255 255 255/10%);display:flex;align-items:flex-start;gap:8px;}
     .chaotic-row input[type="checkbox"]{margin-top:2px;accent-color:#ff9f1c;width:15px;height:15px;flex-shrink:0;cursor:pointer;}
     .chaotic-row label{font-size:11px;cursor:pointer;line-height:1.4;color:#ff9f1c;}
     .chaotic-row label span{color:var(--muted);}
     /* Boss cast bar */
-    #boss-castbar{position:fixed;transform:translate(-50%,-100%);margin-top:-12px;
-      width:190px;z-index:4;pointer-events:none;opacity:0;transition:opacity .18s;
+    #boss-castbar{position:fixed;top:10px;left:50%;transform:translateX(-50%);
+      width:230px;z-index:4;pointer-events:none;opacity:0;transition:opacity .18s;
       background:rgb(0 0 0/78%);border:1px solid rgb(255 255 255/22%);border-radius:5px;
       padding:5px 8px;}
     #boss-castbar.show{opacity:1;}
@@ -195,22 +248,56 @@
 </head>
 <body>
   <div id="mode-select">
-    <h2>L'ura — Phase 4</h2>
-    <p class="mode-sub">Choose your difficulty to begin</p>
-    <button class="mode-btn mode-easy" id="btn-easy">
-      <span class="mode-title">▶ Play Easy</span>
-      <span class="mode-desc">Movement helper enabled · 0.5× score</span>
-    </button>
-    <button class="mode-btn mode-normal" id="btn-normal">
-      <span class="mode-title">▶ Play Normal</span>
-      <span class="mode-desc">No helper · Full score</span>
-    </button>
-    <button class="mode-btn mode-chaotic" id="btn-chaotic">
-      <span class="mode-title">🔥 Chaotic Phase 4 Attempt</span>
-      <span class="mode-desc">Distractions · Raid dies · 1.15× score</span>
-    </button>
+    <div id="role-step">
+      <h2>L'ura — Phase 4</h2>
+      <p class="mode-sub">Choose your role</p>
+      <button class="role-btn role-dps" id="btn-role-dps">
+        <span class="role-title">▶ DPS / Healer</span>
+        <span class="role-desc">Standard play · Assigned Starsplinters</span>
+      </button>
+      <button class="role-btn role-light" id="btn-role-light">
+        <span class="role-title">🔆 Light Holder</span>
+        <span class="role-desc">Guide the raid with your light zone · 3 AI Starsplinters</span>
+      </button>
+      <button class="role-btn role-tank" id="btn-role-tank">
+        <span class="role-title">🛡 Add Tank</span>
+        <span class="role-desc">Soak adds · Control the cone · 3 AI Starsplinters</span>
+      </button>
+      <div class="eab-row" id="eab-bind-row" style="display:none">
+        <label>Extra Action:</label>
+        <button class="eab-key-btn" id="eab-key-btn">E</button>
+        <label style="margin-left:14px">Defensive:</label>
+        <button class="eab-key-btn" id="def-key-btn">F</button>
+      </div>
+      <button class="mode-btn mode-normal" id="tank-continue-btn" style="display:none;margin-top:4px;text-align:center">
+        <span class="mode-title">Choose Difficulty</span>
+        <span class="mode-desc">Proceed to difficulty selection</span>
+      </button>
+    </div>
+    <div id="diff-step" style="display:none">
+      <h2>L'ura — Phase 4</h2>
+      <p class="mode-sub" id="diff-role-label">DPS / Healer · Choose difficulty</p>
+      <button class="mode-btn mode-easy" id="btn-easy">
+        <span class="mode-title">▶ Play Easy</span>
+        <span class="mode-desc">Movement helper enabled · 0.5× score</span>
+      </button>
+      <button class="mode-btn mode-normal" id="btn-normal">
+        <span class="mode-title">▶ Play Normal</span>
+        <span class="mode-desc">No helper · Full score</span>
+      </button>
+      <button class="mode-btn mode-chaotic" id="btn-chaotic">
+        <span class="mode-title">🔥 Chaotic Phase 4 Attempt</span>
+        <span class="mode-desc">Distractions · Raid dies · 1.15× score</span>
+      </button>
+      <button class="step-back" id="btn-back-role">← Change role</button>
+    </div>
   </div>
+  <div id="eab-icon"><canvas id="eab-canvas" width="52" height="52"></canvas><div id="eab-label">EAB</div></div>
+  <div id="def-charges"><div id="def-pips"></div><div id="def-key-label">F</div></div>
+  <div id="def-bar-wrap"><span class="def-bar-label">DEFENSIVE UP</span><div class="def-track"><div id="def-fill"></div></div></div>
   <div id="penalty-flash"></div>
+  <div id="sp-flash"></div>
+  <div id="stun-hints"></div>
   <div id="reint-hint">During re-integration, move to the<br>stack point at the north of the room.</div>
   <div id="scene"></div>
   <div class="hud">
@@ -220,9 +307,9 @@
     <div class="pill">Score <strong id="scorepill">0</strong></div>
   </div>
   <div id="raidcall">
-    <div class="sp-slot" id="sp0"><div class="dir">⬅ LEFT</div><div class="lbl">SP 1</div></div>
-    <div class="sp-slot" id="sp1"><div class="dir">RIGHT ➡</div><div class="lbl">SP 2</div></div>
-    <div class="sp-slot" id="sp2"><div class="dir">⬅ LEFT</div><div class="lbl">SP 3</div></div>
+    <div class="sp-slot" id="sp0"><div class="dir">⬅ LEFT</div><div class="lbl">Starsplinter 1</div></div>
+    <div class="sp-slot" id="sp1"><div class="dir">RIGHT ➡</div><div class="lbl">Starsplinter 2</div></div>
+    <div class="sp-slot" id="sp2"><div class="dir">⬅ LEFT</div><div class="lbl">Starsplinter 3</div></div>
   </div>
   <div id="movecall">
     <div class="movelabel">MOVE IN</div>
@@ -247,7 +334,9 @@
         <div class="score-row"><span>Got munched (−5 each)</span><span class="val neg" id="sr-munch">−0</span></div>
         <div class="score-row"><span>Midnight Falls (−100 each)</span><span class="val neg" id="sr-midnight">−0</span></div>
         <div class="score-row"><span>Got zapped (−100 each)</span><span class="val neg" id="sr-zap">−0</span></div>
-        <div class="score-row"><span>Wrong side on SP (−15 each)</span><span class="val neg" id="sr-wrongside">−0</span></div>
+        <div class="score-row"><span>Wrong side on Starsplinter (−15 each)</span><span class="val neg" id="sr-wrongside">−0</span></div>
+        <div class="score-row"><span>Soaked without defensive (−5 each)</span><span class="val neg" id="sr-nodef">−0</span></div>
+        <div class="score-row"><span>Adds hit raid — no EAB (−75 each)</span><span class="val neg" id="sr-noeab">−0</span></div>
       </div>
       <div class="score-actions">
         <button id="sbRestart">Play Again</button>
@@ -257,7 +346,7 @@
 
   <aside class="controls">
     <h1>L'ura P4 3D</h1>
-    <p><strong style="color:#fff">WASD</strong> — W/S toward/away boss, A/D strafe. White cylinder = you. SP assigned randomly each cycle.</p>
+    <p><strong style="color:#fff">WASD</strong> — W/S toward/away boss, A/D strafe. White cylinder = you. Starsplinter assigned randomly each cycle.</p>
     <div class="row">
       <button id="play">Pause</button>
       <button id="restart">Restart</button>
@@ -266,10 +355,23 @@
       <label for="speed" style="font-size:12px;color:var(--muted)">Speed</label>
       <input id="speed" type="range" min="0.25" max="2" value="1" step="0.25">
     </div>
+    <div class="row">
+      <label for="camDist" style="font-size:12px;color:var(--muted)">Camera distance</label>
+      <input id="camDist" type="range" min="15" max="110" value="42" step="1">
+    </div>
+    <div class="row">
+      <label for="camHeight" style="font-size:12px;color:var(--muted)">Camera height</label>
+      <input id="camHeight" type="range" min="2" max="38" value="17.5" step="0.5">
+    </div>
     <div class="helper-row">
       <input type="checkbox" id="helper" checked>
-      <label for="helper">Show movement helper (SP target ring)<br>
+      <label for="helper">Show movement helper (Starsplinter target ring)<br>
         <strong>⚠ Enabled: score ×0.5 per second</strong></label>
+    </div>
+    <div class="helper-row">
+      <input type="checkbox" id="markers">
+      <label for="markers">Show position markers<br>
+        <span style="color:var(--muted);font-size:10px">Coloured cylinders at raid spots</span></label>
     </div>
     <div class="chaotic-row">
       <input type="checkbox" id="chaotic">
@@ -304,7 +406,7 @@
   <div class="legend">
     <strong>White:</strong> you &nbsp;|&nbsp; <strong>Blue:</strong> raid &nbsp;|&nbsp;
     <strong>Gold:</strong> OT + cone &nbsp;|&nbsp; <strong>Yellow disc:</strong> light safe zone &nbsp;|&nbsp;
-    <strong>Cyan ring:</strong> your SP target &nbsp;|&nbsp;
+    <strong>Cyan ring:</strong> your Starsplinter target &nbsp;|&nbsp;
     Orientation A/B rotates shard pattern 45°
   </div>
 
@@ -316,7 +418,9 @@
     const clockEl=document.getElementById("clock"),stateEl=document.getElementById("state"),cycleEl=document.getElementById("cycle");
     const scorePillEl=document.getElementById("scorepill");
     const playBtn=document.getElementById("play"),restartBtn=document.getElementById("restart"),speedInput=document.getElementById("speed");
-    const helperCheck=document.getElementById("helper"),chaoticCheck=document.getElementById("chaotic");
+    const camDistInput=document.getElementById("camDist"),camHeightInput=document.getElementById("camHeight");
+    const spFlashEl=document.getElementById("sp-flash");
+    const helperCheck=document.getElementById("helper"),chaoticCheck=document.getElementById("chaotic"),markersCheck=document.getElementById("markers");
     const worldCupEl=document.getElementById("worldcup");
     const guildChatEl=document.getElementById("guildchat"),gcMsgsEl=document.getElementById("gc-messages");
     const discordEl=document.getElementById("discord-notif"),dcSenderEl=document.getElementById("dc-sender"),dcTextEl=document.getElementById("dc-text");
@@ -330,7 +434,7 @@
     const deathMsgEl=document.getElementById("death-msg");
     const reintHintEl=document.getElementById("reint-hint");
     const penaltyFlashEl=document.getElementById("penalty-flash");
-    let prevScore=0,penaltyFlashExpiry=-999;
+    let prevScore=0,penaltyFlashExpiry=-999,spFlashExpiry=-999;
     const modeSelectEl=document.getElementById("mode-select");
     document.getElementById("lua-close-btn").addEventListener("click",()=>{luaErrorEl.classList.remove("show");luaErrorShowing=false;});
 
@@ -339,34 +443,41 @@
       duration:90,reintegrationCast:5,
       firstStarsplinter:16,starsplinterSpacing:20,
       heavenSpacing:20,firstHeaven:22,
-      starsApplyGap:1,starsExplosionDelay:3,
-      moveOutDuration:1.35,returnDuration:1.45,
+      starsApplyGap:1,starsExplosionDelay:2,
+      moveOutDuration:1.0,returnDuration:1.45,
       stunDuration:7,heavenRampDuration:4,heavenLaserDuration:4,
       raidDirection:-1,raidAdvanceDegrees:110,
-      shaBaseInterval:0.34,shaSpeed:28,shaWaveSpeed:38,
-      tankConeDelay:1.55,tankConeDuration:2.5
+      shaBaseInterval:0.4,shaSpeed:28,shaWaveSpeed:38,
+      tankConeDelay:0.5,tankConeDuration:0.5
     };
     const world={
       roomRadius:285,bossRadius:36,stackDistance:134,
-      offTankDistance:126,lightRadius:60,shardLength:90,coneLength:136
+      offTankDistance:126,lightRadius:60,shardLength:90,coneLength:109
     };
     const scale=0.052;
     const splinterSides=[1,-1,1];
     const splinterProfiles=[{tangential:46,radial:13},{tangential:58,radial:14},{tangential:56,radial:10}];
     const immunityColors=[0xaad372,0xffd45a,0xff89c2];
     const MARKER_COLORS=[0xffdd00,0xff8c00,0xaa44ff,0x44ff88];
-    const CAM_BACK=160,CAM_H=9.5;
+    const CAM_BACK=42,CAM_H=17.5;
 
     // ── State ────────────────────────────────────────────────────────────────
     let time=0,last=performance.now(),running=false;
+    let playerSplinterForceExplodeAt=Infinity;
     let selectedMode='normal';
+    let selectedRole='dps'; // 'dps' | 'light' | 'tank'
+    let eabKey='e',eabCooldownUntil=-Infinity,eabConePos=null,eabConeDir={x:0,y:1},eabConeExpiry=-Infinity,eabConeFired=false;
+    const tankEabWaveKillCycles=new Set(),checkedWavePenalties=new Set();
+    let defKey='f',defCharges=3,defExpiry=-Infinity;
+    let lightMovePenaltyExpiry=-Infinity;
     let seed=5,lastAddTime=-999,nextAddId=1;
     let adds=[],dyingAdds=[],waveSpawned=new Set();
     let playerPos={x:0,y:-world.stackDistance};
+    let playerFacingDir={x:0,y:1}; // fixed facing: toward boss; only updates during movement phases
     const keys={};
-    const cycleAssignments={},cycleOrientations={},cycleDelays={},cycleAdjustedDrops={},cycleFakeouts={};
+    const cycleAssignments={},cycleOrientations={},cycleDelays={},cycleAdjustedDrops={},cycleFakeouts={},cycleSafeDrops={};
     let nextWanderTime=20+Math.random()*12;
-    const checkedExplosions=new Set(),checkedLasers=new Set();
+    const checkedExplosions=new Set(),checkedLasers=new Set(),firedConeKills=new Set();
     let messageExpiry=0;
     let lastMunchTime=-999,lastMidnightTime=-999;
     // Chaotic mode state
@@ -433,11 +544,23 @@
     let safeAccum=0;
     let scoreboardShown=false;
 
-    window.addEventListener("keydown",e=>{if("wasd".includes(e.key.toLowerCase()))e.preventDefault();keys[e.key.toLowerCase()]=true;});
+    window.addEventListener("keydown",e=>{
+      if("wasd".includes(e.key.toLowerCase()))e.preventDefault();
+      keys[e.key.toLowerCase()]=true;
+      if(selectedRole==='tank'&&running&&e.key.toLowerCase()===eabKey&&time>eabCooldownUntil
+          &&time>phase.reintegrationCast+phase.stunDuration){
+        eabConePos={...playerPos};eabConeDir={...playerFacingDir};
+        eabConeExpiry=time+0.5;eabCooldownUntil=time+18;eabConeFired=false;
+        const ac=activeStarsplinterCycle(time);
+        if(ac&&waveSpawned.has(ac.index))tankEabWaveKillCycles.add(ac.index);}
+      if(selectedRole==='tank'&&running&&e.key.toLowerCase()===defKey&&defCharges>0
+          &&time>phase.reintegrationCast+phase.stunDuration){
+        defCharges--;defExpiry=time+6;
+        updateDefUI();}});
     window.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
     window.addEventListener("blur",()=>Object.keys(keys).forEach(k=>keys[k]=false));
 
-    function getCycleAssignment(i){if(!(i in cycleAssignments))cycleAssignments[i]=Math.floor(Math.random()*3);return cycleAssignments[i];}
+    function getCycleAssignment(i){if(selectedRole!=='dps')return -1;if(!(i in cycleAssignments))cycleAssignments[i]=Math.floor(Math.random()*3);return cycleAssignments[i];}
     function getCycleOrientation(i){if(!(i in cycleOrientations))cycleOrientations[i]=Math.random()<.5?1:0;return cycleOrientations[i];}
     // SP2 bot sometimes hesitates ~1s before moving out (50% chance per cycle)
     function getCycleSP2Delay(i){if(!(i in cycleDelays))cycleDelays[i]=0.7+Math.random()*.6;return cycleDelays[i];}
@@ -449,6 +572,17 @@
         if(Math.random()<0.2){
           f[si]={wrongDrop:drops[1-si],dur:0.4+Math.random()*.35};}});
       cycleFakeouts[ci]=f;return f;}
+    // Find a safe drop position where no shard ray hits the stack
+    function findSafeDrop(defaultDrop,stackPos,orientB,safeR=18){
+      const check=pos=>{const angs=shardAnglesForDrop(stackPos,pos,orientB);for(const a of angs)if(shardHitsPos(pos,a,stackPos,safeR))return false;return true;};
+      if(check(defaultDrop))return defaultDrop;
+      const rv=norm2(stackPos),tv={x:-rv.y,y:rv.x};
+      for(let off=8;off<=64;off+=8)for(const s of[1,-1]){const c=add2(defaultDrop,mul2(tv,off*s));if(check(c))return c;}
+      return defaultDrop;}
+    function getCycleSafeDrop(ci,si,stackPos,drops,orientB){
+      const key=`${ci}-${si}`;
+      if(!(key in cycleSafeDrops))cycleSafeDrops[key]=findSafeDrop(drops[si],stackPos,orientB);
+      return cycleSafeDrops[key];}
     // SP2 bot checks SP0's shards and picks a safe alternative drop once per cycle
     function getAdjustedSP2Drop(cycleIdx,stackPos,drops,orientB){
       if(cycleIdx in cycleAdjustedDrops)return cycleAdjustedDrops[cycleIdx];
@@ -470,7 +604,7 @@
     const scene=new THREE.Scene();
     scene.background=new THREE.Color(0x02030a);
     scene.fog=new THREE.Fog(0x02030a,18,50);
-    const camera=new THREE.PerspectiveCamera(54,innerWidth/innerHeight,.1,130);
+    const camera=new THREE.PerspectiveCamera(32,innerWidth/innerHeight,.1,200);
     const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(innerWidth,innerHeight);
     renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));
@@ -515,10 +649,11 @@
     // ── Timing ────────────────────────────────────────────────────────────────
     function raidAngleAt(t){
       let a=-Math.PI/2;
+      const moveDelay=1.0; // raid holds still for 1s after Heaven cast starts
       for(let i=0;i<3;i++){
         const ht=phase.firstHeaven+i*phase.heavenSpacing;if(t<=ht)break;
         const dur=phase.heavenRampDuration+phase.heavenLaserDuration;
-        a+=phase.raidDirection*phase.raidAdvanceDegrees*Math.PI/180*smooth(clamp((t-ht)/dur,0,1));
+        a+=phase.raidDirection*phase.raidAdvanceDegrees*Math.PI/180*clamp((t-ht-moveDelay)/(dur-moveDelay),0,1);
         if(t>=ht+dur)a=-Math.PI/2+phase.raidDirection*(i+1)*phase.raidAdvanceDegrees*Math.PI/180;}
       return a;}
     function raidPosAt(t){return polar(raidAngleAt(t),world.stackDistance);}
@@ -548,8 +683,9 @@
         if(dist>maxR)d=add2(stackPos,mul2(norm2(rel),maxR));
         return d;});}
     function shardAnglesForDrop(stackPos,drop,orientB){
-      const da=angleOf(sub2(stackPos,drop)),ex=orientB?Math.PI/4:0;
-      return Array.from({length:6},(_,i)=>da+Math.PI/6+ex+i*Math.PI/3);}
+      const da=angleOf(sub2(stackPos,drop)),ex=orientB?Math.PI/4:Math.PI/6;
+      // orientA: one ray points directly toward the stack (da+0); orientB: rotated 45°
+      return Array.from({length:6},(_,i)=>da+ex+i*Math.PI/3);}
     function splinterState(t,ci,si,stackPos,drop){
       const apply=phase.firstStarsplinter+ci*phase.starsplinterSpacing+si*phase.starsApplyGap;
       const explode=apply+phase.starsExplosionDelay,retEnd=explode+phase.returnDuration;
@@ -563,7 +699,7 @@
       return{pos,drop,explode,exploding:ex,shardsVisible:sv,angles:shardAnglesForDrop(stackPos,drop,getCycleOrientation(ci))};}
 
     // ── Collision helpers ─────────────────────────────────────────────────────
-    function shardHitsPos(drop,angle,target,hitR=11){
+    function shardHitsPos(drop,angle,target,hitR=5){
       const dir={x:Math.cos(angle),y:Math.sin(angle)},rel=sub2(target,drop);
       const along=rel.x*dir.x+rel.y*dir.y;
       if(along<0||along>world.shardLength)return false;
@@ -587,8 +723,8 @@
       new THREE.MeshStandardMaterial({color:0x05060d,roughness:.92,metalness:.02}));
     floorMesh.position.y=-.04;scene.add(floorMesh);
     scene.add(makeRing(world.roomRadius,0xffffff,.08,.022));
-    const floorLineMat=new THREE.LineBasicMaterial({color:0x85d8ff,transparent:true,opacity:.06});
-    for(let r=55;r<=world.roomRadius-30;r+=38){const rg=makeRing(r,0x85d8ff,.04,.010);rg.position.y=.025;scene.add(rg);}
+    const floorLineMat=new THREE.LineBasicMaterial({color:0x85d8ff,transparent:true,opacity:.18});
+    for(let r=55;r<=world.roomRadius-30;r+=38){const rg=makeRing(r,0x85d8ff,.14,.010);rg.position.y=.025;scene.add(rg);}
     for(let i=0;i<24;i++){const a=i*Math.PI/12;
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([w2v(polar(a,42),.035),w2v(polar(a,world.roomRadius-10),.035)]),floorLineMat));}
 
@@ -600,7 +736,7 @@
     // ── Light zone ────────────────────────────────────────────────────────────
     const lightRing=makeRing(world.lightRadius,0x55ccff,1.0,.10);scene.add(lightRing);
     const lightRingGlow=makeRing(world.lightRadius,0x88ddff,.28,.22);scene.add(lightRingGlow);
-    const stackGlow=makeRing(14,0xff9900,.85,.048);scene.add(stackGlow);
+    const stackGlow=makeRing(7,0xff9900,.85,.048);scene.add(stackGlow);
     // Warm disc: red inner fading to yellow — two layered discs
     const lightDiscRed=new THREE.Mesh(new THREE.CircleGeometry(world.lightRadius*scale*.55,64),
       new THREE.MeshBasicMaterial({color:0xff2200,transparent:true,opacity:.32,depthWrite:false}));
@@ -629,7 +765,8 @@
         const isSP=i<3,col=isSP?0x5599ff:0x4466bb,emis=isSP?0x102244:0x0a1122;
         const mesh=makeCyl(col,emis,.18,.18,.65);scene.add(mesh);
         aiPlayers.push({mesh,spIndex:isSP?i:null,baseOffset:offsets[i]||{x:0,y:0},
-          wobblePhase:i*.91,wobbleAmp:0.7,currentPos:{x:0,y:-world.stackDistance}});}}
+          wobblePhase:i*.91,wobbleAmp:0.7,currentPos:{x:0,y:-world.stackDistance},
+          moveSpeedVar:(Math.random()*2-1)*0.1});}}
 
     // ── Player ────────────────────────────────────────────────────────────────
     const playerCyl=makeCyl(0xffffff,0x999999,.22,.22,.74);
@@ -667,10 +804,10 @@
     const shardInnerMat=new THREE.MeshBasicMaterial({color:0xaaeeff,transparent:true,opacity:.97,depthWrite:false});
     const shardOuterMat=new THREE.MeshBasicMaterial({color:0x1033cc,transparent:true,opacity:.52,depthWrite:false});
     const shardInners=Array.from({length:18},()=>{
-      const m=new THREE.Mesh(new THREE.CylinderGeometry(.004,.082,1,7),shardInnerMat);
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.008,.11,1,7),shardInnerMat);
       m.visible=false;m.renderOrder=2;scene.add(m);return m;});
     const shardOuters=Array.from({length:18},()=>{
-      const m=new THREE.Mesh(new THREE.CylinderGeometry(.018,.15,1,7),shardOuterMat);
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(.028,.20,1,7),shardOuterMat);
       m.visible=false;m.renderOrder=1;scene.add(m);return m;});
     function setShardCyl(idx,a,b){
       orientCylBetween(shardInners[idx],w2v(a,.12),w2v(b,.12));
@@ -712,14 +849,15 @@
       return{x:lerp(active.x,home.x,rp),y:lerp(active.y,home.y,rp)};}
     function soakAdd(a,t,soaker){
       if(t-a.lastSoakedAt<1.2)return;
-      // Only redirect on first soak — already-white adds keep their heading
-      if(t>=a.soakedUntil){
+      // 10% chance to nudge direction on first soak
+      if(t>=a.soakedUntil&&Math.random()<0.1){
         const away=norm2(sub2(a.pos,soaker));
         a.dir=norm2(rotate2(a.dir,clamp(angularDelta(angleOf(a.dir),angleOf(away)),-Math.PI/4,Math.PI/4)));}
-      a.soakedUntil=t+2.0;a.lastSoakedAt=t;}
-    function spawnAdd(t,wave){
-      const a=rand()*Math.PI*2,s=polar(a,world.bossRadius+8);
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(wave?.52:.42,18,12),wave?mPink:mPurp);
+      a.soakedUntil=t+1.2;a.lastSoakedAt=t;}
+    function spawnAdd(t,wave,fixedAngle){
+      const a=fixedAngle!==undefined?fixedAngle:rand()*Math.PI*2;
+      const s=polar(a,world.bossRadius+8);
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(wave?.95:.80,wave?.22:.18,wave?.60:.50),wave?mPink:mPurp);
       scene.add(mesh);
       adds.push({id:nextAddId++,pos:s,dir:{x:Math.cos(a),y:Math.sin(a)},
         speed:(wave?phase.shaWaveSpeed:phase.shaSpeed)*(0.82+rand()*.36),
@@ -727,34 +865,48 @@
     function updateAdds(t,dt,sp,otp,ip){
       if(t<phase.reintegrationCast+phase.stunDuration)return;
       const cycle=activeStarsplinterCycle(t);
-      if(cycle&&t>=cycle.start&&!waveSpawned.has(cycle.index)){for(let i=0;i<18;i++)spawnAdd(t,true);waveSpawned.add(cycle.index);}
+      if(cycle&&t>=cycle.start&&!waveSpawned.has(cycle.index)){for(let i=0;i<36;i++)spawnAdd(t,true,i*(Math.PI/18));waveSpawned.add(cycle.index);}
       if(t-lastAddTime>=phase.shaBaseInterval){spawnAdd(t,false);lastAddTime=t;}
       for(const a of adds){
-        const w={x:-a.dir.y,y:a.dir.x};
-        a.pos=add2(a.pos,add2(mul2(a.dir,a.speed*dt),mul2(w,Math.sin(t*2.2+a.wobble)*2.1*dt)));
-        if(len2(sub2(a.pos,otp))<22)soakAdd(a,t,otp);
+        a.pos=add2(a.pos,mul2(a.dir,a.speed*dt));
+        if(selectedRole==='tank'){
+          if(len2(sub2(a.pos,playerPos))<22){
+            if(t-a.lastSoakedAt>=1.2&&t>defExpiry){
+              score-=5;penalties.noDefensive=(penalties.noDefensive||0)+5;
+              showMessage('NO DEFENSIVE! −5','bad',2);}
+            soakAdd(a,t,playerPos);}
+        }else if(len2(sub2(a.pos,otp))<22)soakAdd(a,t,otp);
         if(currentHeaven(t)&&len2(sub2(a.pos,ip))<20)soakAdd(a,t,ip);
-        // Soaked adds: 20% per second chance of a small random direction nudge
-        if(t<a.soakedUntil&&Math.random()<0.2*dt)
-          a.dir=norm2(rotate2(a.dir,(Math.random()-.5)*Math.PI*.3));
+        // Direction only changes via soakAdd
         a.mesh.material=t<a.soakedUntil?mWhite:(a.wave?mPink:mPurp);
-        a.mesh.position.copy(w2v(a.pos,a.wave?.52:.42));}
+        a.mesh.position.copy(w2v(a.pos,a.wave?.09:.08));
+        a.mesh.rotation.y=-Math.atan2(a.dir.y,a.dir.x);}
       adds=adds.filter(a=>{const keep=len2(a.pos)<world.roomRadius+40&&len2(sub2(a.pos,sp))>7;if(!keep)scene.remove(a.mesh);return keep;});}
 
     // ── Cone kills ────────────────────────────────────────────────────────────
-    function updateConeKills(t,stackPos){
-      if(!coneActive(t))return;
-      const otp=offTankPos(stackPos),fwd=norm2(mul2(stackPos,-1));
+    function fireConekills(t,conePos,coneFwd){
+      const otp=conePos,fwd=coneFwd;
       adds=adds.filter(a=>{
         const rel=sub2(a.pos,otp);
         const along=rel.x*fwd.x+rel.y*fwd.y;
         if(along<0||along>world.coneLength)return true;
         const side=Math.abs(rel.x*(-fwd.y)+rel.y*fwd.x);
         if(side>along*Math.tan(Math.PI/4)+12)return true;
-        // Killed — flash out
         a.mesh.material=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:1});
         dyingAdds.push({pos:{...a.pos},startT:t,mesh:a.mesh});
         return false;});}
+    function updateConeKills(t,stackPos){
+      if(selectedRole==='tank'){
+        if(!eabConePos||t>=eabConeExpiry||t<=phase.reintegrationCast+phase.stunDuration)return;
+        if(!eabConeFired){eabConeFired=true;fireConekills(t,eabConePos,eabConeDir);}
+      }else{
+        if(!coneActive(t))return;
+        const c=activeStarsplinterCycle(t);if(!c)return;
+        const key=`cone-${c.index}`;
+        if(firedConeKills.has(key))return;
+        firedConeKills.add(key);
+        fireConekills(t,offTankPos(stackPos),norm2(mul2(stackPos,-1)));
+      }}
 
     function updateDyingAdds(t){
       for(let i=dyingAdds.length-1;i>=0;i--){
@@ -769,12 +921,16 @@
       const dur=t>=phase.reintegrationCast&&t<=phase.reintegrationCast+phase.stunDuration;
       const aft=t>phase.reintegrationCast+phase.stunDuration;
       playerCyl.visible=playerRing.visible=dur||aft;if(!playerCyl.visible)return;
+      // Update facing only during stun and Heaven movement — locked otherwise
+      if(dur||currentHeaven(t)){
+        const toBoss={x:-playerPos.x,y:-playerPos.y};
+        if(len2(toBoss)>1)playerFacingDir=norm2(toBoss);}
       if(aft&&running){
-        const spd=52*dt,rad=norm2(stackPos),tan={x:-rad.y,y:rad.x};
-        if(keys['w'])playerPos=add2(playerPos,mul2({x:-rad.x,y:-rad.y},spd));
-        if(keys['s'])playerPos=add2(playerPos,mul2(rad,spd));
-        if(keys['a'])playerPos=add2(playerPos,mul2(tan,spd));
-        if(keys['d'])playerPos=add2(playerPos,mul2({x:rad.y,y:-rad.x},spd));}
+        const spd=(selectedRole==='light'?45.5:35)*dt,fwd=playerFacingDir,rgt={x:-fwd.y,y:fwd.x};
+        if(keys['w'])playerPos=add2(playerPos,mul2(fwd,spd));
+        if(keys['s'])playerPos=add2(playerPos,mul2({x:-fwd.x,y:-fwd.y},spd));
+        if(keys['a'])playerPos=add2(playerPos,mul2({x:fwd.y,y:-fwd.x},spd));
+        if(keys['d'])playerPos=add2(playerPos,mul2(rgt,spd));}
       if(dur)playerPos={...stackPos};
       const baseY=.34+(dur?liftY:0);
       playerCyl.position.copy(w2v(playerPos,baseY));
@@ -804,9 +960,8 @@
         ai.mesh.visible=show;if(!show)return;
         let pos;
         if(ai.spIndex!==null&&cycle&&ai.spIndex!==playerSP){
-          const delay=ai.spIndex===2?getCycleSP2Delay(cycle.index):0;
-          const eDrop=ai.spIndex===2?getAdjustedSP2Drop(cycle.index,stackPos,drops,orientB):drops[ai.spIndex];
-          const st=splinterState(t-delay,cycle.index,ai.spIndex,stackPos,eDrop);
+          const eDrop=ai.spIndex===2?getAdjustedSP2Drop(cycle.index,stackPos,drops,orientB):getCycleSafeDrop(cycle.index,ai.spIndex,stackPos,drops,orientB);
+          const st=splinterState(t,cycle.index,ai.spIndex,stackPos,eDrop);
           pos=st?st.pos:add2(stackPos,ai.baseOffset);
           // Chaotic fakeout: briefly move toward wrong side then self-correct
           if(chaoticCheck.checked&&ai.spIndex<2&&drops){
@@ -816,14 +971,16 @@
                 pos={x:lerp(stackPos.x,fo.wrongDrop.x,p*.55),y:lerp(stackPos.y,fo.wrongDrop.y,p*.55)};}}}
         }else{
           const wx=Math.sin(t*.85+ai.wobblePhase)*ai.wobbleAmp,wy=Math.cos(t*.72+ai.wobblePhase*1.3)*ai.wobbleAmp;
-          pos=add2(stackPos,add2(ai.baseOffset,{x:wx,y:wy}));
+          // Per-member speed variation during stack movement (±10%)
+          const aiStackPos=raidPosAt(t+ai.moveSpeedVar*7);
+          pos=add2(aiStackPos,add2(ai.baseOffset,{x:wx,y:wy}));
           // Random wander override
           const w=aiWander[i];
           if(w.active){
             const el=t-w.startTime,tot=w.endTime-w.startTime,half=tot/2;
             if(el>=tot){w.active=false;}
             else if(el<half){const p=smooth(el/half);pos={x:lerp(w.fromPos.x,w.target.x,p),y:lerp(w.fromPos.y,w.target.y,p)};}
-            else{const p=smooth((el-half)/half);const ret=add2(stackPos,ai.baseOffset);pos={x:lerp(w.target.x,ret.x,p),y:lerp(w.target.y,ret.y,p)};}}}
+            else{const p=smooth((el-half)/half);const ret=add2(aiStackPos,ai.baseOffset);pos={x:lerp(w.target.x,ret.x,p),y:lerp(w.target.y,ret.y,p)};}}}
         ai.currentPos=pos;
         ai.mesh.position.copy(w2v(pos,.325+(dur?liftY:0)));});}
 
@@ -842,33 +999,27 @@
         if(i===playerSP){
           const apply=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+i*phase.starsApplyGap;
           const explode=apply+phase.starsExplosionDelay,retEnd=explode+phase.returnDuration;
-          if(t<apply||t>retEnd){li+=6;continue;}
+          // If munched during active splinter, shift time forward to explosion
+          const tEff=(playerSplinterForceExplodeAt<Infinity&&t>=apply&&t<explode)
+            ?explode+(t-playerSplinterForceExplodeAt):t;
+          if(tEff<apply||tEff>retEnd){li+=6;continue;}
           // Show target ring only if helper enabled
-          if(helperCheck.checked&&t<explode){
+          if(helperCheck.checked&&tEff<explode){
             targetRing.visible=true;targetRing.position.copy(w2v(drops[i],.03));}
           splinterMeshes[i].visible=true;splinterMeshes[i].position.copy(w2v(playerPos,.38));
-          if(t>=apply&&t<explode+.36){
+          if(tEff>=apply&&tEff<explode+.36){
             const angles=shardAnglesForDrop(stackPos,drops[i],orientB);
             for(const angle of angles){
               const end=add2(playerPos,polar(angle,world.shardLength));
               setShardCyl(li,playerPos,end);
-              if(t>=explode&&t<explode+.36){
-                const p=smooth(clamp((t-explode)/.36,0,1));
+              if(tEff>=explode&&tEff<explode+.36){
+                const p=smooth(clamp((tEff-explode)/.36,0,1));
                 const tp=add2(playerPos,polar(angle,world.shardLength*p));
                 pulseTriangles[li].visible=true;pulseTriangles[li].position.copy(w2v(tp,.12));pulseTriangles[li].rotation.y=Math.PI/2-angle;}
               li++;}}else li+=6;
         }else{
-          const delay=i===2?getCycleSP2Delay(cycle.index):0;
           const eDrop=i===2?getAdjustedSP2Drop(cycle.index,stackPos,drops,orientB):drops[i];
-          const applyI=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+i*phase.starsApplyGap;
-          const explodeI=applyI+phase.starsExplosionDelay;
-          let st;
-          if(delay>0&&t>=applyI&&t<applyI+delay){
-            // Bot is hesitating — shards visible from stack position
-            st={pos:{...stackPos},drop:eDrop,explode:explodeI,exploding:false,
-              shardsVisible:true,angles:shardAnglesForDrop(stackPos,eDrop,orientB)};
-          }else{
-            st=splinterState(t-delay,cycle.index,i,stackPos,eDrop);}
+          const st=splinterState(t,cycle.index,i,stackPos,eDrop);
           if(!st){li+=6;continue;}
           splinterMeshes[i].visible=true;splinterMeshes[i].position.copy(w2v(st.pos,.34));
           if(st.shardsVisible){
@@ -906,16 +1057,36 @@
       laserFlashMat.opacity=flashPhase<.1?smooth(flashPhase/.1)*.22:flashPhase<.22?smooth(1-(flashPhase-.1)/.12)*.22:0;}
 
     // ── OT cone ───────────────────────────────────────────────────────────────
+    function applyConeWave(mesh,progress){
+      // Scale along forward axis (X) to animate wave sweeping out
+      const p=clamp(progress,0,1);
+      mesh.scale.set(p,1,1);
+      mesh.material.opacity=0.55*(1-p*0.6);}
     function updateOTCone(t,stackPos){
+      if(selectedRole==='tank'){
+        const eabActive=eabConePos&&t<eabConeExpiry&&t>phase.reintegrationCast+phase.stunDuration;
+        otConeMesh.visible=!!eabActive;
+        if(eabActive){
+          const p=(t-(eabConeExpiry-0.5))/0.5;
+          otConeMesh.position.copy(w2v(eabConePos,0));
+          const fwd=new THREE.Vector3(eabConeDir.x,0,eabConeDir.y).normalize();
+          otConeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),fwd);
+          applyConeWave(otConeMesh,p);}
+        return;}
       const active=coneActive(t)&&t>phase.reintegrationCast+phase.stunDuration;
-      otConeMesh.visible=active;if(!active)return;
+      otConeMesh.visible=active;if(!active){otConeMesh.scale.set(1,1,1);return;}
+      const c=activeStarsplinterCycle(t);
+      const coneStart=c?c.start+phase.tankConeDelay:t;
+      const p=(t-coneStart)/phase.tankConeDuration;
       const otp=offTankPos(stackPos),n=norm2(otp);
       otConeMesh.position.copy(w2v(otp,0));
       const to=new THREE.Vector3(-n.x,0,-n.y).normalize();
-      otConeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),to);}
+      otConeMesh.quaternion.setFromUnitVectors(new THREE.Vector3(1,0,0),to);
+      applyConeWave(otConeMesh,p);}
 
     // ── World markers ─────────────────────────────────────────────────────────
     function updateWorldMarkers(t){
+      if(!markersCheck.checked){worldMarkers.forEach(m=>{m.mesh.visible=m.ring.visible=false;});return;}
       const stunEnd=phase.reintegrationCast+phase.stunDuration;
       worldMarkers.forEach((m,i)=>{
         const arr=markerArrivalTime(i),f0=arr-.5,f1=arr+1.8;
@@ -935,19 +1106,52 @@
 
     // ── Boss cast bar (Heaven & Hell) ─────────────────────────────────────────
     const _bossTop=new THREE.Vector3(0,world.bossRadius*scale*0.5,0);
+    function updateStunHints(t){
+      const s=phase.reintegrationCast,e=s+phase.stunDuration;
+      // North hint: fade in t=0..0.5, hold, fade out t=2.5..3.0
+      if(reintHintEl){
+        let op=0;
+        if(t>=0&&t<=e){
+          if(t<0.5)op=t/0.5;
+          else if(t<2.5)op=1;
+          else if(t<3.0)op=1-(t-2.5)/0.5;
+          else op=0;
+        }
+        reintHintEl.style.opacity=String(op);
+      }
+      const lines=document.querySelectorAll('#stun-hints .hint-line');
+      if(!lines.length)return;
+      const active=t>=2.5&&t<=e;
+      const fadeOutStart=e-1.5;
+      lines.forEach((line,i)=>{
+        if(!active){line.style.opacity='0';return;}
+        const fadeInAt=2.5+i*1.0;
+        if(t<fadeInAt){line.style.opacity='0';return;}
+        if(t>=fadeOutStart){
+          const p=Math.min(1,(t-fadeOutStart)/0.4);
+          line.style.opacity=String(1-p);
+        }else{
+          const p=Math.min(1,(t-fadeInAt)/0.35);
+          line.style.opacity=String(p);}});}
+
     function updateBossCastBar(t){
       const h=currentHeaven(t);
-      if(!h){bossCastbarEl.classList.remove("show");return;}
+      if(!h){
+        // Show countdown to next Heaven and Hell
+        let nextStart=Infinity;
+        for(let i=0;i<3;i++){const s=phase.firstHeaven+i*phase.heavenSpacing;if(s>t){nextStart=s;break;}}
+        if(nextStart===Infinity){bossCastbarEl.classList.remove("show");return;}
+        const remaining=Math.max(0,nextStart-t);
+        bcbLabelEl.textContent=`Heaven & Hell — ${remaining.toFixed(1)}s`;
+        bcbFillEl.className="bcb-fill casting";
+        const elapsed=phase.heavenSpacing-(nextStart-(phase.firstHeaven>t?phase.firstHeaven:nextStart-phase.heavenSpacing))-remaining;
+        bcbFillEl.style.width=`${clamp(1-remaining/phase.heavenSpacing,0,1)*100}%`;
+        bossCastbarEl.classList.add("show");return;}
       const casting=t<h.laserStart;
       const fill=casting?(t-h.start)/phase.heavenRampDuration:1-(t-h.laserStart)/phase.heavenLaserDuration;
       bcbLabelEl.textContent=casting?"Heaven and Hell":"Channeling";
       bcbFillEl.className="bcb-fill "+(casting?"casting":"channeling");
       bcbFillEl.style.width=`${clamp(fill,0,1)*100}%`;
-      // Project boss mid to screen
-      _bossTop.set(0,world.bossRadius*scale*0.5,0);
-      const p=_bossTop.clone().project(camera);
-      bossCastbarEl.style.left=`${(p.x*.5+.5)*innerWidth}px`;
-      bossCastbarEl.style.top=`${(-p.y*.5+.5)*innerHeight}px`;
       bossCastbarEl.classList.add("show");}
 
     // ── Cast bar ─────────────────────────────────────────────────────────────
@@ -958,18 +1162,39 @@
 
     // ── Camera ────────────────────────────────────────────────────────────────
     function updateCamera(liftY){
+      const camBack=Number(camDistInput.value),camH=Number(camHeightInput.value);
       const ref=len2(playerPos)<1?{x:0,y:-world.stackDistance}:playerPos;
       const radial=norm2(ref);
-      const camPos2d=add2(ref,mul2(radial,CAM_BACK));
+      const camPos2d=add2(ref,mul2(radial,camBack));
       const target=w2v(ref,1.15+liftY);
-      const desired=w2v(camPos2d,CAM_H+liftY*.35);
+      const desired=w2v(camPos2d,camH+liftY*.35);
       camera.position.lerp(desired,.12);camera.lookAt(target.x,target.y,target.z);}
 
     // ── Score ─────────────────────────────────────────────────────────────────
     function updateScore(t,dt,stackPos){
       if(t<phase.reintegrationCast+phase.stunDuration)return;
       if(!running)return;
-      const inLight=len2(sub2(playerPos,stackPos))<=world.lightRadius;
+      const heaven=currentHeaven(t);
+      if(selectedRole==='light'){
+        const lightCoversRaid=len2(sub2(playerPos,stackPos))<=world.lightRadius;
+        if(lightCoversRaid){
+          const base=chaoticCheck.checked?1.15:(helperCheck.checked?.5:1);
+          const gain=base*dt*Number(speedInput.value);
+          score+=gain;safeAccum+=gain;}
+        // 1/s penalty when any AI is outside the light zone
+        let anyOutside=false;
+        for(const ai of aiPlayers){if(len2(sub2(ai.currentPos,playerPos))>world.lightRadius){anyOutside=true;break;}}
+        if(anyOutside)score-=1.0*dt;
+        // -5 score if player moves while any splinter is still in-flight
+        // Window: cycle.start → last splinter's retEnd = start + 2*applyGap + explosionDelay + returnDuration
+        const sc=activeStarsplinterCycle(t);
+        const lastRetEnd=sc?sc.start+2*phase.starsApplyGap+phase.starsExplosionDelay+phase.returnDuration:0;
+        if(sc&&t>=sc.start&&t<lastRetEnd&&(keys['w']||keys['s']||keys['a']||keys['d'])&&t>lightMovePenaltyExpiry){
+          score-=5;lightMovePenaltyExpiry=t+3;
+          showMessage('DO NOT MOVE — STARSPLINTERS ACTIVE! −5','danger',2);}
+        return;}
+      const scoreRadius=heaven?world.lightRadius:12;
+      const inLight=len2(sub2(playerPos,stackPos))<=scoreRadius;
       if(inLight){
         const base=chaoticCheck.checked?1.15:(helperCheck.checked?.5:1);
         const gain=base*dt*Number(speedInput.value);
@@ -988,8 +1213,9 @@
       const rounded=Math.round(score);
       const gr=gradeScore(rounded);
       const modeLabels={easy:'⭐ EASY MODE',normal:'NORMAL',chaotic:'🔥 CHAOTIC PHASE 4 ATTEMPT'};
+      const roleSuffix={light:' · LIGHT HOLDER',tank:' · ADD TANK',dps:''};
       const smodeEl=document.getElementById("smode");
-      smodeEl.textContent=modeLabels[selectedMode]||'NORMAL';
+      smodeEl.textContent=(modeLabels[selectedMode]||'NORMAL')+(roleSuffix[selectedRole]||'');
       smodeEl.style.color=selectedMode==='chaotic'?'#ff9f1c':selectedMode==='easy'?'#a8e563':'var(--muted)';
       document.getElementById("sgrade").textContent=gr.g;
       document.getElementById("sgrade").className=`score-grade ${gr.cls}`;
@@ -1001,6 +1227,8 @@
       document.getElementById("sr-midnight").textContent=`−${penalties.midnight||0}`;
       document.getElementById("sr-zap").textContent=`−${penalties.zapped||0}`;
       document.getElementById("sr-wrongside").textContent=`−${penalties.wrongSide||0}`;
+      document.getElementById("sr-nodef").textContent=`−${penalties.noDefensive||0}`;
+      document.getElementById("sr-noeab").textContent=`−${penalties.noEabClear||0}`;
       scoreboardEl.classList.add("show");scoreboardShown=true;}
 
     // ── Collision checks ──────────────────────────────────────────────────────
@@ -1011,8 +1239,11 @@
       for(let si=0;si<3;si++){
         const apply=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+si*phase.starsApplyGap;
         const explode=apply+phase.starsExplosionDelay,key=`${cycle.index}-${si}`;
-        if(t>=explode&&t<explode+.12&&!checkedExplosions.has(key)){
+        const tEff=(playerSplinterForceExplodeAt<Infinity&&si===playerSP&&t>=apply&&t<explode)?explode:t;
+        if(tEff>=explode&&tEff<explode+.12&&!checkedExplosions.has(key)){
           checkedExplosions.add(key);
+          // Use actual explosion position: playerPos for human, adjusted drop for AI
+          const exOrigin=si===playerSP?playerPos:(si===2?getAdjustedSP2Drop(cycle.index,stackPos,drops,orientB):drops[si]);
           if(si===playerSP){
             const angles=shardAnglesForDrop(stackPos,drops[si],orientB);
             let count=0;
@@ -1020,26 +1251,23 @@
             if(count>0){
               const pen=count*10;score-=pen;penalties.sliceOthers=(penalties.sliceOthers||0)+pen;
               showMessage(`YOU SLICED ${count} PLAYER${count>1?'S':''}! −${pen}`,'bad');}
-            // Check wrong side — splinterSides[0,2]=1 (LEFT), splinterSides[1]=-1 (RIGHT)
-            // Tangent points LEFT relative to boss-facing; positive dot = LEFT side
             const radial=norm2(stackPos),tangent={x:-radial.y,y:radial.x};
             const lateral=(playerPos.x-stackPos.x)*tangent.x+(playerPos.y-stackPos.y)*tangent.y;
-            const expectedSign=splinterSides[playerSP];// 1=LEFT, -1=RIGHT
+            const expectedSign=splinterSides[playerSP];
             if(Math.abs(lateral)>20&&lateral*expectedSign<0){
               score-=15;penalties.wrongSide+=15;
               const dirs=['LEFT','RIGHT','LEFT'];
               showMessage(`WRONG SIDE — should be ${dirs[playerSP]}! −15`,'bad',3);}
           }else{
-            const angles=shardAnglesForDrop(stackPos,drops[si],orientB);
-            for(const ang of angles){if(shardHitsPos(drops[si],ang,playerPos)){
+            const angles=shardAnglesForDrop(stackPos,exOrigin,orientB);
+            for(const ang of angles){if(shardHitsPos(exOrigin,ang,playerPos)){
               score-=10;penalties.sliced=(penalties.sliced||0)+10;
               showMessage('YOU GOT SLICED! −10','danger');break;}}
-            // Chaotic: AI players hit by any shard vanish permanently
             if(chaoticCheck.checked){
               let killedAny=false;
               aiPlayers.forEach((ai,idx)=>{
                 if(deadAI.has(idx)||!ai.mesh.visible)return;
-                for(const ang of angles){if(shardHitsPos(drops[si],ang,ai.currentPos,13)){deadAI.add(idx);ai.mesh.visible=false;killedAny=true;break;}}});
+                for(const ang of angles){if(shardHitsPos(exOrigin,ang,ai.currentPos,13)){deadAI.add(idx);ai.mesh.visible=false;killedAny=true;break;}}});
               if(killedAny&&time-lastDeathMsgTime>2){
                 deathMsgEl.textContent=DEATH_REACTIONS[Math.floor(Math.random()*DEATH_REACTIONS.length)];
                 deathMsgEl.classList.add("show");
@@ -1048,6 +1276,7 @@
     function checkOnYouSP(t,stackPos){
       const cycle=activeStarsplinterCycle(t);if(!cycle)return;
       const playerSP=getCycleAssignment(cycle.index);
+      if(playerSP===-1)return;
       const apply=phase.firstStarsplinter+cycle.index*phase.starsplinterSpacing+playerSP*phase.starsApplyGap;
       const key=`onyou-${cycle.index}`;
       if(t>=apply&&t<apply+.15&&!checkedExplosions.has(key)){
@@ -1057,7 +1286,8 @@
           showMessage(line,'bad',1.0);
         }else{
           const dirs=['⬅ LEFT','RIGHT ➡','⬅ LEFT'];
-          showMessage(`ON YOU — ${dirs[playerSP]}`,'alert',3.5);}}}
+          showMessage(`STARSPLINTER — ${dirs[playerSP]}`,'alert',3.5);
+          spFlashExpiry=t+0.65;}}}
     function checkZap(t){
       const h=currentHeaven(t);if(!h||t<h.laserStart)return;
       const key=`laser-${h.index}`;if(checkedLasers.has(key))return;
@@ -1066,13 +1296,20 @@
         score-=100;penalties.zapped=(penalties.zapped||0)+100;
         showMessage('YOU GOT ZAPPED! −100','danger');checkedLasers.add(key);}}
     function checkMunch(t,stackPos){
+      if(selectedRole==='tank')return;
       if(t-lastMunchTime<3)return;
       if(len2(sub2(playerPos,stackPos))<18)return;// safe inside stack circle
       for(const a of adds){
         if(a.wave||t<a.soakedUntil)continue;
         if(len2(sub2(playerPos,a.pos))<14){
           score-=5;penalties.munched=(penalties.munched||0)+5;
-          showMessage('YOU GOT MUNCHED! −5','danger',2.5);lastMunchTime=t;return;}}}
+          showMessage('YOU GOT MUNCHED! −5','danger',2.5);lastMunchTime=t;
+          // Force active starsplinter to explode immediately
+          const sc=activeStarsplinterCycle(t);
+          if(sc){const pSP=getCycleAssignment(sc.index);if(pSP===-1)return;
+            const ap=phase.firstStarsplinter+sc.index*phase.starsplinterSpacing+pSP*phase.starsApplyGap;
+            if(t>=ap&&t<ap+phase.starsExplosionDelay) playerSplinterForceExplodeAt=t;}
+          return;}}}
     function checkMidnight(t,stackPos){
       if(t<phase.reintegrationCast+phase.stunDuration)return;
       if(t-lastMidnightTime<3)return;
@@ -1151,12 +1388,13 @@
 
       stackGlow.visible=lightRing.visible=lightRingGlow.visible=lightDisc.visible=lightDiscRed.visible=showRaid;
       stackGlow.position.copy(w2v(stackPos,.05+liftY));
-      lightRing.position.copy(w2v(stackPos,.06+liftY));
-      lightRingGlow.position.copy(w2v(stackPos,.06+liftY));
-      lightDisc.position.set(stackPos.x*scale,.06+liftY,stackPos.y*scale);
-      lightDiscRed.position.set(stackPos.x*scale,.065+liftY,stackPos.y*scale);
+      const lightCenter=selectedRole==='light'?playerPos:stackPos;
+      lightRing.position.copy(w2v(lightCenter,.06+liftY));
+      lightRingGlow.position.copy(w2v(lightCenter,.06+liftY));
+      lightDisc.position.set(lightCenter.x*scale,.06+liftY,lightCenter.y*scale);
+      lightDiscRed.position.set(lightCenter.x*scale,.065+liftY,lightCenter.y*scale);
 
-      otCyl.visible=showRaid;otCyl.position.copy(w2v(otPos,.36+liftY));
+      otCyl.visible=showRaid&&selectedRole!=='tank';otCyl.position.copy(w2v(otPos,.36+liftY));
 
       immuneMesh.visible=Boolean(aft&&currentHeaven(time));
       immuneMesh.position.copy(w2v(immunePosNow,.34));
@@ -1171,21 +1409,60 @@
       updateOTCone(time,stackPos);
       updateConeKills(time,stackPos);
       updateWorldMarkers(time);
+      updateStunHints(time);
       updateBossCastBar(time);
       updateCastBar(time);
       updateCamera(liftY);
-      reintHintEl.classList.toggle("show",time<phase.reintegrationCast&&running);
+      // reintHintEl opacity managed by updateStunHints
       if(score<prevScore)penaltyFlashExpiry=time+0.15;
       penaltyFlashEl.classList.toggle("on",time<penaltyFlashExpiry);
+      spFlashEl.classList.toggle("on",time<spFlashExpiry);
       prevScore=score;
+      // EAB cooldown icon
+      if(selectedRole==='tank'&&running){
+        const eabCvs=document.getElementById('eab-canvas');
+        const ctx2=eabCvs.getContext('2d');
+        const W=52,cx=W/2,cy=W/2,rad=22;
+        ctx2.clearRect(0,0,W,W);
+        const onCd=time<eabCooldownUntil;
+        ctx2.beginPath();ctx2.arc(cx,cy,rad,0,Math.PI*2);
+        ctx2.fillStyle=onCd?'rgba(30,10,0,0.85)':'rgba(255,122,69,0.18)';ctx2.fill();
+        if(onCd){
+          const frac=1-(eabCooldownUntil-time)/18;
+          ctx2.beginPath();ctx2.moveTo(cx,cy);
+          ctx2.arc(cx,cy,rad,-Math.PI/2,-Math.PI/2+frac*Math.PI*2);
+          ctx2.closePath();ctx2.fillStyle='rgba(255,122,69,0.45)';ctx2.fill();}
+        ctx2.font='bold 13px monospace';ctx2.textAlign='center';ctx2.textBaseline='middle';
+        ctx2.fillStyle=onCd?'#ff7a45':'#fff';
+        ctx2.fillText(eabKey.toUpperCase(),cx,cy);}
+      // Defensive bar + pips
+      if(selectedRole==='tank'&&running){
+        const defBarWrap=document.getElementById('def-bar-wrap');
+        const defFill=document.getElementById('def-fill');
+        const defActive=time<defExpiry;
+        defBarWrap.classList.toggle('show',defActive);
+        if(defActive)defFill.style.width=`${clamp((defExpiry-time)/6,0,1)*100}%`;
+        updateDefUI();}
       updateRaidCall(time);
       updateHud(time);
       if(aft){
         updateScore(time,dt,stackPos);
         checkExplosions(time,stackPos);
+        if(playerSplinterForceExplodeAt<Infinity){
+          const sc=activeStarsplinterCycle(time);
+          if(!sc||time>phase.firstStarsplinter+sc.index*phase.starsplinterSpacing+getCycleAssignment(sc.index)*phase.starsApplyGap+phase.starsExplosionDelay+phase.returnDuration)
+            playerSplinterForceExplodeAt=Infinity;}
         checkOnYouSP(time,stackPos);
         checkZap(time);
         checkMunch(time,stackPos);
+        // Add Tank: penalise −75 if EAB not used to clear red wave
+        if(selectedRole==='tank'){
+          const wc=activeStarsplinterCycle(time);
+          if(wc&&waveSpawned.has(wc.index)&&!checkedWavePenalties.has(wc.index)&&time>=wc.start+3.0){
+            checkedWavePenalties.add(wc.index);
+            if(!tankEabWaveKillCycles.has(wc.index)){
+              score-=75;penalties.noEabClear=(penalties.noEabClear||0)+75;
+              showMessage('ADDS HIT THE RAID! −75','danger',3);}}}
         checkMidnight(time,stackPos);}
 
       // ── Chaotic mode overlays ────────────────────────────────────────────────
@@ -1276,9 +1553,11 @@
       Object.keys(cycleDelays).forEach(k=>delete cycleDelays[k]);
       Object.keys(cycleAdjustedDrops).forEach(k=>delete cycleAdjustedDrops[k]);
       Object.keys(cycleFakeouts).forEach(k=>delete cycleFakeouts[k]);
+      Object.keys(cycleSafeDrops).forEach(k=>delete cycleSafeDrops[k]);
       aiWander.forEach(w=>w.active=false);nextWanderTime=20+Math.random()*12;
-      checkedExplosions.clear();checkedLasers.clear();
-      playerPos={x:0,y:-world.stackDistance};
+      checkedExplosions.clear();checkedLasers.clear();firedConeKills.clear();
+      tankEabWaveKillCycles.clear();checkedWavePenalties.clear();
+      playerPos={x:0,y:-world.stackDistance};playerFacingDir={x:0,y:1};
       messageExpiry=0;messageEl.className='';lastMunchTime=-999;lastMidnightTime=-999;
       score=0;safeAccum=0;Object.keys(penalties).forEach(k=>penalties[k]=0);scoreboardShown=false;
       deadAI.clear();aiPlayers.forEach(ai=>ai.mesh.visible=true);
@@ -1289,21 +1568,105 @@
       luaErrorEl.classList.remove("show");luaErrorShowing=false;nextLuaErrorTime=28+Math.random()*12;
       deathMsgEl.classList.remove("show");deathMsgExpiry=-999;lastDeathMsgTime=-999;
       nextOfflineTime=45+Math.random()*10;
-      gcEggExpiry=-999;pendingGcReplies=[];buildEasterEggSchedule();
+      gcEggExpiry=-999;pendingGcReplies=[];buildEasterEggSchedule();buildStunHints();
       scoreboardEl.classList.remove("show");
-      reintHintEl.classList.remove("show");
-      prevScore=0;penaltyFlashExpiry=-999;penaltyFlashEl.classList.remove("on");
+      reintHintEl.style.opacity='0';
+      prevScore=0;penaltyFlashExpiry=-999;spFlashExpiry=-999;penaltyFlashEl.classList.remove("on");spFlashEl.classList.remove("on");
+      eabCooldownUntil=-Infinity;eabConePos=null;eabConeExpiry=-Infinity;eabConeFired=false;
+      defCharges=3;defExpiry=-Infinity;lightMovePenaltyExpiry=-Infinity;
+      document.getElementById('eab-icon').classList.remove('show');
+      document.getElementById('def-charges').classList.remove('show');
+      document.getElementById('def-bar-wrap').classList.remove('show');
+      document.getElementById('role-step').style.display='flex';
+      document.getElementById('diff-step').style.display='none';
+      document.getElementById('eab-bind-row').style.display='none';
+      document.getElementById('tank-continue-btn').style.display='none';
       modeSelectEl.style.display='flex';
       running=false;playBtn.textContent="Pause";
-      camera.position.set(0,CAM_H,-CAM_BACK*scale);last=performance.now();}
+      camera.position.set(0,Number(camHeightInput.value),-Number(camDistInput.value)*scale);last=performance.now();}
+
+    const STUN_HINTS={
+      dps:[
+        'Remain pixel-stacked with the group whenever possible.',
+        'Move to the correct side with Starsplinter. (WASD)',
+        'Don\'t get hit by Void Swarm adds.',
+        'Don\'t fall behind the raid during Heaven &amp; Hell.'
+      ],
+      light:[
+        'Stand still on top of the raid during Starsplinters.',
+        'Move during Heaven and Hell without leaving people behind. (WASD)',
+        'Don\'t get hit by Void Swarm adds.'
+      ],
+      tank:[
+        'Remain slightly in front of the group at all times.',
+        'Use \'The Last Light\' action to clear adds in front of you.',
+        'Use a defensive to soak any adds that will hit the group.',
+        'Move during Heaven &amp; Hell and help to soak adds.'
+      ],
+      chaotic:[
+        'You have selected Chaos Mode. Good Luck.',
+        'Your raid is arguing about whether someone was in the wrong spot in P3.',
+        'Your Raid Leader tells you to calm down.',
+        'Your raid leader tells you that this is the easiest part of the fight.',
+        'Rage consumes you as someone disconnects.',
+        'Your UI has been throwing errors all pull.'
+      ]
+    };
+    function buildStunHints(){
+      const lines=chaoticCheck.checked?STUN_HINTS.chaotic:(STUN_HINTS[selectedRole]||STUN_HINTS.dps);
+      const el=document.getElementById('stun-hints');
+      el.innerHTML=lines.map(l=>`<div class="hint-line">${l}</div>`).join('');}
 
     function startMode(mode){
       selectedMode=mode;
       helperCheck.checked=(mode==='easy');
       chaoticCheck.checked=(mode==='chaotic');
       buildEasterEggSchedule();
+      buildStunHints();
       modeSelectEl.style.display='none';
+      if(selectedRole==='tank'){
+        document.getElementById('eab-icon').classList.add('show');
+        document.getElementById('def-charges').classList.add('show');
+        defCharges=3;defExpiry=-Infinity;updateDefUI();}
       running=true;playBtn.textContent="Pause";last=performance.now();}
+
+    // Defensive UI helper
+    function updateDefUI(){
+      const pips=document.getElementById('def-pips');
+      pips.innerHTML='';
+      for(let i=0;i<3;i++){const d=document.createElement('div');d.className='def-pip'+(i>=defCharges?' spent':'');pips.appendChild(d);}}
+
+    // Role step → diff step
+    const roleLabels={'dps':'DPS / Healer','light':'Light Holder','tank':'Add Tank'};
+    function selectRole(role){
+      selectedRole=role;
+      document.getElementById('diff-role-label').textContent=roleLabels[role]+' · Choose difficulty';
+      document.getElementById('role-step').style.display='none';
+      document.getElementById('diff-step').style.display='flex';}
+    document.getElementById("btn-role-dps").addEventListener("click",()=>selectRole('dps'));
+    document.getElementById("btn-role-light").addEventListener("click",()=>selectRole('light'));
+    document.getElementById("btn-role-tank").addEventListener("click",()=>{
+      document.getElementById('eab-bind-row').style.display='flex';
+      document.getElementById('tank-continue-btn').style.display='block';
+      selectedRole='tank';});
+    document.getElementById("tank-continue-btn").addEventListener("click",()=>selectRole('tank'));
+    document.getElementById("btn-back-role").addEventListener("click",()=>{
+      document.getElementById('diff-step').style.display='none';
+      document.getElementById('role-step').style.display='flex';});
+
+    // EAB / Defensive keybind capture
+    const eabKeyBtn=document.getElementById('eab-key-btn');
+    const defKeyBtn=document.getElementById('def-key-btn');
+    let capturingEab=false,capturingDef=false;
+    eabKeyBtn.addEventListener("click",()=>{capturingEab=true;capturingDef=false;eabKeyBtn.textContent='…';eabKeyBtn.classList.add('capturing');});
+    defKeyBtn.addEventListener("click",()=>{capturingDef=true;capturingEab=false;defKeyBtn.textContent='…';defKeyBtn.classList.add('capturing');});
+    window.addEventListener("keydown",e=>{
+      if(capturingEab){e.preventDefault();eabKey=e.key.toLowerCase();
+        eabKeyBtn.textContent=e.key.toUpperCase();eabKeyBtn.classList.remove('capturing');capturingEab=false;return;}
+      if(capturingDef){e.preventDefault();defKey=e.key.toLowerCase();
+        defKeyBtn.textContent=e.key.toUpperCase();document.getElementById('def-key-label').textContent=e.key.toUpperCase();
+        defKeyBtn.classList.remove('capturing');capturingDef=false;return;}},true);
+
     document.getElementById("btn-easy").addEventListener("click",()=>startMode('easy'));
     document.getElementById("btn-normal").addEventListener("click",()=>startMode('normal'));
     document.getElementById("btn-chaotic").addEventListener("click",()=>startMode('chaotic'));
