@@ -1,0 +1,195 @@
+import * as THREE from "https://unpkg.com/three@0.165.0/build/three.module.js";
+import { phase, world, scale, MARKER_COLORS } from './config.js';
+import { w2v, polar, makeRing, makeCyl, add2, mul2, norm2, len2 } from './math.js';
+import { state, dom } from './state.js';
+
+export function initScene() {
+  // ── Three.js ─────────────────────────────────────────────────────────────
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x02030a);
+  scene.fog = new THREE.Fog(0x02030a, 18, 50);
+  const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, .1, 200);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  dom.mount.appendChild(renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0x9bbdff, 0x120816, 1.2));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6); keyLight.position.set(8, 14, 7); scene.add(keyLight);
+
+  state.scene = scene;
+  state.camera = camera;
+  state.renderer = renderer;
+  state.keyLight = keyLight;
+
+  // ── World markers ─────────────────────────────────────────────────────────
+  const wmpPositions = [0, 1, 2, 3].map(i => polar(-Math.PI / 2 + phase.raidDirection * i * phase.raidAdvanceDegrees * Math.PI / 180, world.stackDistance));
+  const worldMarkers = wmpPositions.map((pos, i) => {
+    const col = MARKER_COLORS[i];
+    const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .35, transparent: true, opacity: .5, roughness: .4 });
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(.44, .52, 2.1, 16), mat);
+    mesh.position.copy(w2v(pos, 1.05)); scene.add(mesh);
+    const ring = makeRing(16, col, .85, .055); ring.position.copy(w2v(pos, .03)); scene.add(ring);
+    return { mesh, ring, mat, ringMat: ring.material };
+  });
+  state.worldMarkers = worldMarkers;
+
+  // ── Floor / room ──────────────────────────────────────────────────────────
+  const floorMesh = new THREE.Mesh(new THREE.CylinderGeometry(world.roomRadius * scale, world.roomRadius * scale, .05, 160),
+    new THREE.MeshStandardMaterial({ color: 0x05060d, roughness: .92, metalness: .02 }));
+  floorMesh.position.y = -.04; scene.add(floorMesh);
+  scene.add(makeRing(world.roomRadius, 0xffffff, .08, .022));
+  const floorLineMat = new THREE.LineBasicMaterial({ color: 0x85d8ff, transparent: true, opacity: .18 });
+  for (let r = 55; r <= world.roomRadius - 30; r += 38) { const rg = makeRing(r, 0x85d8ff, .14, .010); rg.position.y = .025; scene.add(rg); }
+  for (let i = 0; i < 24; i++) {
+    const a = i * Math.PI / 12;
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([w2v(polar(a, 42), .035), w2v(polar(a, world.roomRadius - 10), .035)]), floorLineMat));
+  }
+  state.floorMesh = floorMesh;
+
+  // ── Boss ──────────────────────────────────────────────────────────────────
+  const boss = new THREE.Mesh(new THREE.SphereGeometry(world.bossRadius * scale, 32, 18),
+    new THREE.MeshStandardMaterial({ color: 0x6f42c1, emissive: 0x2c104f, roughness: .4 }));
+  boss.position.set(0, world.bossRadius * scale, 0); scene.add(boss);
+  state.boss = boss;
+
+  // ── Light zone ────────────────────────────────────────────────────────────
+  const lightRing = makeRing(world.lightRadius, 0x55ccff, 1.0, .10); scene.add(lightRing);
+  const lightRingGlow = makeRing(world.lightRadius, 0x88ddff, .28, .22); scene.add(lightRingGlow);
+  const stackGlow = makeRing(7, 0xff9900, .85, .048); scene.add(stackGlow);
+  // Warm disc: red inner fading to yellow — two layered discs
+  const lightDiscRed = new THREE.Mesh(new THREE.CircleGeometry(world.lightRadius * scale * .55, 64),
+    new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: .32, depthWrite: false }));
+  lightDiscRed.renderOrder = 2; lightDiscRed.rotation.x = -Math.PI / 2; lightDiscRed.visible = false; scene.add(lightDiscRed);
+  const lightDisc = new THREE.Mesh(new THREE.CircleGeometry(world.lightRadius * scale, 64),
+    new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: .26, depthWrite: false }));
+  lightDisc.renderOrder = 1; lightDisc.rotation.x = -Math.PI / 2; lightDisc.visible = false; scene.add(lightDisc);
+  state.lightRing = lightRing;
+  state.lightRingGlow = lightRingGlow;
+  state.stackGlow = stackGlow;
+  state.lightDiscRed = lightDiscRed;
+  state.lightDisc = lightDisc;
+
+  // ── OT cylinder + cone ────────────────────────────────────────────────────
+  const otCyl = makeCyl(0xffd45a, 0x553600, .21, .21, .72); scene.add(otCyl);
+  const otConeMesh = (() => {
+    const ha = Math.PI / 4, n = 24, r = world.coneLength * scale, pts = [];
+    for (let i = 0; i < n; i++) {
+      const a1 = -ha + i * (2 * ha / n), a2 = -ha + (i + 1) * (2 * ha / n);
+      pts.push(0, .04, 0, Math.cos(a1) * r, .04, Math.sin(a1) * r, Math.cos(a2) * r, .04, Math.sin(a2) * r);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3)); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffd45a, transparent: true, opacity: .32, side: THREE.DoubleSide }));
+    m.visible = false; scene.add(m); return m;
+  })();
+  state.otCyl = otCyl;
+  state.otConeMesh = otConeMesh;
+
+  // ── 17 AI cylinders ───────────────────────────────────────────────────────
+  const aiPlayers = [];
+  {
+    const offsets = [];
+    [[2, 6], [4, 7], [7, 4]].forEach(([r, n], ri) => {
+      for (let j = 0; j < n; j++) { const a = j * (2 * Math.PI / n) + ri * .55; offsets.push({ x: Math.cos(a) * r, y: Math.sin(a) * r }); }
+    });
+    for (let i = 0; i < 17; i++) {
+      const isSP = i < 3, col = isSP ? 0x5599ff : 0x4466bb, emis = isSP ? 0x102244 : 0x0a1122;
+      const mesh = makeCyl(col, emis, .18, .18, .65); scene.add(mesh);
+      aiPlayers.push({
+        mesh, spIndex: isSP ? i : null, baseOffset: offsets[i] || { x: 0, y: 0 },
+        wobblePhase: i * .91, wobbleAmp: 0.7, currentPos: { x: 0, y: -world.stackDistance },
+        moveSpeedVar: (Math.random() * 2 - 1) * 0.1
+      });
+    }
+  }
+  state.aiPlayers = aiPlayers;
+
+  // ── Player ────────────────────────────────────────────────────────────────
+  const playerCyl = makeCyl(0xffffff, 0x999999, .22, .22, .74);
+  const playerRing = makeRing(11, 0xffffff, .82, .042);
+  scene.add(playerCyl); scene.add(playerRing);
+  const targetRing = makeRing(18, 0x85d8ff, .8, .055); targetRing.visible = false; scene.add(targetRing);
+  state.playerCyl = playerCyl;
+  state.playerRing = playerRing;
+  state.targetRing = targetRing;
+
+  // ── Immunity ──────────────────────────────────────────────────────────────
+  const immuneMesh = new THREE.Mesh(new THREE.SphereGeometry(.28, 18, 12),
+    new THREE.MeshStandardMaterial({ color: 0xaad372, emissive: 0x203a0c })); scene.add(immuneMesh);
+  state.immuneMesh = immuneMesh;
+
+  // ── Stun field ────────────────────────────────────────────────────────────
+  const stunFieldMat = new THREE.MeshBasicMaterial({ color: 0x5cc8ff, transparent: true, opacity: .12 });
+  const stunField = new THREE.Mesh(new THREE.CylinderGeometry(world.roomRadius * scale + .04, world.roomRadius * scale + .04, .035, 160), stunFieldMat);
+  stunField.position.y = .01; stunField.visible = false; scene.add(stunField);
+  state.stunFieldMat = stunFieldMat;
+  state.stunField = stunField;
+
+  // ── Laser flash overlay ───────────────────────────────────────────────────
+  const laserFlashMat = new THREE.MeshBasicMaterial({ color: 0xff1010, transparent: true, opacity: 0 });
+  const laserFlash = new THREE.Mesh(new THREE.CylinderGeometry(world.roomRadius * scale + .2, world.roomRadius * scale + .2, .04, 80), laserFlashMat);
+  laserFlash.position.y = .012; scene.add(laserFlash);
+  state.laserFlashMat = laserFlashMat;
+  state.laserFlash = laserFlash;
+
+  // ── Heaven beam (very thick) ──────────────────────────────────────────────
+  const beamCyl = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, 1, 8),
+    new THREE.MeshBasicMaterial({ color: 0xff2a43, transparent: true, opacity: .96 }));
+  beamCyl.visible = false; scene.add(beamCyl);
+  const beamGlowCyl = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, 1, 8),
+    new THREE.MeshBasicMaterial({ color: 0x69d6ff, transparent: true, opacity: .3 }));
+  beamGlowCyl.visible = false; scene.add(beamGlowCyl);
+  const beamPulses = [0, 1, 2].map(() => { const r = makeRing(12, 0x69d6ff, .8, .035); r.visible = false; scene.add(r); return r; });
+  state.beamCyl = beamCyl;
+  state.beamGlowCyl = beamGlowCyl;
+  state.beamPulses = beamPulses;
+
+  // ── Shard cylinders ───────────────────────────────────────────────────────
+  // Shard: tapered — thick at player end (radiusBottom/-Y), needle tip at far end (radiusTop/+Y)
+  // Two layers: bright cyan inner + dark blue outer glow
+  const shardInnerMat = new THREE.MeshBasicMaterial({ color: 0xaaeeff, transparent: true, opacity: .97, depthWrite: false });
+  const shardOuterMat = new THREE.MeshBasicMaterial({ color: 0x1033cc, transparent: true, opacity: .52, depthWrite: false });
+  const shardInners = Array.from({ length: 18 }, () => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(.008, .11, 1, 7), shardInnerMat);
+    m.visible = false; m.renderOrder = 2; scene.add(m); return m;
+  });
+  const shardOuters = Array.from({ length: 18 }, () => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(.028, .20, 1, 7), shardOuterMat);
+    m.visible = false; m.renderOrder = 1; scene.add(m); return m;
+  });
+  state.shardInnerMat = shardInnerMat;
+  state.shardOuterMat = shardOuterMat;
+  state.shardInners = shardInners;
+  state.shardOuters = shardOuters;
+
+  // ── Pulse triangles ───────────────────────────────────────────────────────
+  const triGeom = new THREE.BufferGeometry();
+  triGeom.setAttribute("position", new THREE.Float32BufferAttribute([0, .04, .48, -.22, .04, -.25, .22, .04, -.25], 3));
+  triGeom.computeVertexNormals();
+  const pulseMat = new THREE.MeshBasicMaterial({ color: 0xff2a43, side: THREE.DoubleSide });
+  const pulseTriangles = Array.from({ length: 18 }, () => { const t = new THREE.Mesh(triGeom, pulseMat); t.visible = false; scene.add(t); return t; });
+  state.pulseTriangles = pulseTriangles;
+
+  // ── Splinter markers ──────────────────────────────────────────────────────
+  const splinterMeshes = [0, 1, 2].map(() => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(.28, 18, 12),
+      new THREE.MeshStandardMaterial({ color: 0xff5f86, emissive: 0x4f0619, roughness: .35 }));
+    scene.add(m); return m;
+  });
+  state.splinterMeshes = splinterMeshes;
+
+  // ── Add materials ─────────────────────────────────────────────────────────
+  state.mPurp = new THREE.MeshStandardMaterial({ color: 0x9b69d7, emissive: 0x211039, roughness: .45 });
+  state.mPink = new THREE.MeshStandardMaterial({ color: 0xff5f86, emissive: 0x3d0614, roughness: .45 });
+  state.mWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x777777, roughness: .25 });
+}
+
+// ── Camera ────────────────────────────────────────────────────────────────
+export function updateCamera(liftY) {
+  const camBack = Number(dom.camDistInput.value), camH = Number(dom.camHeightInput.value);
+  const ref = len2(state.playerPos) < 1 ? { x: 0, y: -world.stackDistance } : state.playerPos;
+  const radial = norm2(ref);
+  const camPos2d = add2(ref, mul2(radial, camBack));
+  const target = w2v(ref, 1.15 + liftY);
+  const desired = w2v(camPos2d, camH + liftY * .35);
+  state.camera.position.lerp(desired, .12); state.camera.lookAt(target.x, target.y, target.z);
+}
