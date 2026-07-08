@@ -83,6 +83,8 @@ export function updateWorldMarkers(t) {
 export function updateStun(t) {
   const s = phase.reintegrationCast, e = s + phase.stunDuration, active = t >= s && t <= e;
   state.stunField.visible = active; if (!active) return;
-  const pulse = .5 + .5 * Math.sin((t - s) * Math.PI * 3.4);
-  state.stunFieldMat.color.setHex(pulse > .5 ? 0xff2a43 : 0x5cc8ff); state.stunFieldMat.opacity = .13 + pulse * .16;
+  // Calm, steady blue field with a slow breathing glow. (Previously a ~3.4Hz
+  // full-screen red/blue strobe — a photosensitive-seizure hazard.)
+  const pulse = .5 + .5 * Math.sin((t - s) * Math.PI * 0.5);
+  state.stunFieldMat.color.setHex(0x5cc8ff); state.stunFieldMat.opacity = .11 + pulse * .05;
 }
