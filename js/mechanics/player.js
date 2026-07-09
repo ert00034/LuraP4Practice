@@ -6,9 +6,10 @@ import { currentHeaven } from '../timing.js';
 export function updatePlayer(t, dt, stackPos, liftY) {
   const dur = t >= phase.reintegrationCast && t <= phase.reintegrationCast + phase.stunDuration;
   const aft = t > phase.reintegrationCast + phase.stunDuration;
-  state.playerCyl.visible = state.playerRing.visible = dur || aft; if (!state.playerCyl.visible) return;
-  // Update facing only during stun and Heaven movement — locked otherwise
-  if (dur || currentHeaven(t)) {
+  state.playerArrow.visible = state.playerRing.visible = dur || aft; if (!state.playerArrow.visible) return;
+  // During stun the player is forced to face the boss; otherwise facing is
+  // steered by right-mouse drag (see initCameraControls)
+  if (dur) {
     const toBoss = { x: -state.playerPos.x, y: -state.playerPos.y };
     if (len2(toBoss) > 1) state.playerFacingDir = norm2(toBoss);
   }
@@ -21,6 +22,7 @@ export function updatePlayer(t, dt, stackPos, liftY) {
   }
   if (dur) state.playerPos = { ...stackPos };
   const baseY = .34 + (dur ? liftY : 0);
-  state.playerCyl.position.copy(w2v(state.playerPos, baseY));
+  state.playerArrow.position.copy(w2v(state.playerPos, baseY));
+  state.playerArrow.rotation.y = Math.atan2(state.playerFacingDir.x, state.playerFacingDir.y);
   state.playerRing.position.copy(w2v(state.playerPos, .04 + (dur ? liftY : 0)));
 }

@@ -1,6 +1,6 @@
 import * as THREE from "https://unpkg.com/three@0.165.0/build/three.module.js";
 import { phase, world, scale, MARKER_COLORS } from './config.js';
-import { w2v, polar, makeRing, makeCyl, add2, mul2, norm2, len2 } from './math.js';
+import { w2v, polar, makeRing, makeCyl, len2, clamp } from './math.js';
 import { state, dom } from './state.js';
 
 export function initScene() {
@@ -103,12 +103,22 @@ export function initScene() {
   }
   state.aiPlayers = aiPlayers;
 
-  // ── Player ────────────────────────────────────────────────────────────────
-  const playerCyl = makeCyl(0xffffff, 0x999999, .22, .22, .74);
+  // ── Player — 3D arrow pointing along facing direction ────────────────────
+  const arrowShape = new THREE.Shape();
+  arrowShape.moveTo(0, .48);      // tip (forward)
+  arrowShape.lineTo(.3, -.3);     // right back corner
+  arrowShape.lineTo(0, -.14);     // tail notch
+  arrowShape.lineTo(-.3, -.3);    // left back corner
+  arrowShape.closePath();
+  const arrowGeom = new THREE.ExtrudeGeometry(arrowShape, { depth: .2, bevelEnabled: true, bevelThickness: .04, bevelSize: .03, bevelSegments: 2 });
+  arrowGeom.rotateX(Math.PI / 2);   // lay flat: shape +Y (forward) → +Z
+  arrowGeom.translate(0, .14, 0);   // center the extruded thickness
+  const playerArrow = new THREE.Mesh(arrowGeom,
+    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x999999, roughness: .6, metalness: .1 }));
   const playerRing = makeRing(11, 0xffffff, .82, .042);
-  scene.add(playerCyl); scene.add(playerRing);
+  scene.add(playerArrow); scene.add(playerRing);
   const targetRing = makeRing(18, 0x85d8ff, .8, .055); targetRing.visible = false; scene.add(targetRing);
-  state.playerCyl = playerCyl;
+  state.playerArrow = playerArrow;
   state.playerRing = playerRing;
   state.targetRing = targetRing;
 
@@ -183,13 +193,50 @@ export function initScene() {
   state.mWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x777777, roughness: .25 });
 }
 
-// ── Camera ────────────────────────────────────────────────────────────────
-export function updateCamera(liftY) {
-  const camBack = Number(dom.camDistInput.value), camH = Number(dom.camHeightInput.value);
+// ── Camera — WoW-style orbit around the player ───────────────────────────
+export function camForward() { return { x: Math.sin(state.camYaw), y: Math.cos(state.camYaw) }; }
+
+export function updateCamera(liftY, snap = false) {
+  const dist = Number(dom.camDistInput.value);
   const ref = len2(state.playerPos) < 1 ? { x: 0, y: -world.stackDistance } : state.playerPos;
-  const radial = norm2(ref);
-  const camPos2d = add2(ref, mul2(radial, camBack));
+  const fwd = camForward();
+  const horiz = dist * Math.cos(state.camPitch);
   const target = w2v(ref, 1.15 + liftY);
-  const desired = w2v(camPos2d, camH + liftY * .35);
-  state.camera.position.lerp(desired, .12); state.camera.lookAt(target.x, target.y, target.z);
+  const desired = new THREE.Vector3(
+    target.x - fwd.x * horiz,
+    1.15 + liftY * .35 + dist * Math.sin(state.camPitch),
+    target.z - fwd.y * horiz);
+  if (snap) state.camera.position.copy(desired);
+  else state.camera.position.lerp(desired, .25);
+  state.camera.lookAt(target.x, target.y, target.z);
+}
+
+// ── Mouse camera controls ─────────────────────────────────────────────────
+// Left-drag: orbit camera only. Right-drag: orbit camera AND turn the player.
+// Scroll: zoom (drives the camera distance slider).
+export function initCameraControls() {
+  const el = state.renderer.domElement;
+  let dragButton = -1, lastX = 0, lastY = 0;
+  el.addEventListener("contextmenu", e => e.preventDefault());
+  el.addEventListener("mousedown", e => {
+    if (e.button !== 0 && e.button !== 2) return;
+    e.preventDefault();
+    dragButton = e.button; lastX = e.clientX; lastY = e.clientY;
+    if (dragButton === 2) state.playerFacingDir = camForward();
+  });
+  window.addEventListener("mousemove", e => {
+    if (dragButton < 0) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    state.camYaw -= dx * 0.006;
+    state.camPitch = clamp(state.camPitch + dy * 0.005, 0.12, 1.5);
+    if (dragButton === 2) state.playerFacingDir = camForward();
+  });
+  window.addEventListener("mouseup", e => { if (e.button === dragButton) dragButton = -1; });
+  window.addEventListener("blur", () => { dragButton = -1; });
+  el.addEventListener("wheel", e => {
+    e.preventDefault();
+    const s = dom.camDistInput;
+    s.value = String(clamp(Number(s.value) + Math.sign(e.deltaY) * 1.2, Number(s.min), Number(s.max)));
+  }, { passive: false });
 }

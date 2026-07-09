@@ -1,4 +1,4 @@
-import { world } from './config.js';
+import { world, CAM_PITCH } from './config.js';
 
 export const dom = {
   mount: document.getElementById("scene"),
@@ -10,7 +10,6 @@ export const dom = {
   restartBtn: document.getElementById("restart"),
   speedInput: document.getElementById("speed"),
   camDistInput: document.getElementById("camDist"),
-  camHeightInput: document.getElementById("camHeight"),
   spFlashEl: document.getElementById("sp-flash"),
   helperCheck: document.getElementById("helper"),
   chaoticCheck: document.getElementById("chaotic"),
@@ -65,8 +64,12 @@ export const state = {
 
   // ── Player ───────────────────────────────────────────────────────────
   playerPos: { x: 0, y: -world.stackDistance },
-  playerFacingDir: { x: 0, y: 1 }, // fixed facing: toward boss; only updates during movement phases
+  playerFacingDir: { x: 0, y: 1 }, // facing: forced toward boss during stun; otherwise steered via right-mouse drag
   keys: {},
+
+  // ── Camera orbit (WoW-style) ─────────────────────────────────────────
+  camYaw: 0,          // horizontal orbit angle; 0 = looking north toward boss
+  camPitch: CAM_PITCH, // vertical angle above horizontal
 
   // ── Splinter cycle caches ────────────────────────────────────────────
   cycleAssignments: {}, cycleOrientations: {}, cycleDelays: {}, cycleAdjustedDrops: {}, cycleFakeouts: {}, cycleSafeDrops: {},
@@ -119,7 +122,7 @@ export const state = {
   otCyl: null,
   otConeMesh: null,
   aiPlayers: null,
-  playerCyl: null,
+  playerArrow: null,
   playerRing: null,
   targetRing: null,
   immuneMesh: null,

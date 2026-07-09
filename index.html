@@ -49,7 +49,26 @@
         <span class="mode-title">🔥 Chaotic Phase 4 Attempt</span>
         <span class="mode-desc">Distractions · Raid dies · 1.15× score</span>
       </button>
-      <button class="step-back" id="btn-back-role">← Change role</button>
+      <div class="aux-row">
+        <button class="aux-btn" id="btn-guide">📖 Role Guide</button>
+        <button class="aux-btn" id="btn-back-role">← Change Role</button>
+      </div>
+    </div>
+    <div id="guide-step" style="display:none">
+      <h2>L'ura — Phase 4</h2>
+      <p class="mode-sub" id="guide-role-label">DPS / Healer · Guide</p>
+      <div class="guide-card">
+        <div class="guide-heading">Your job</div>
+        <div id="guide-lines"></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-heading">Controls</div>
+        <div class="guide-line"><strong>WASD</strong> — move (W/S forward/back, A/D strafe)</div>
+        <div class="guide-line"><strong>Right-click + drag</strong> — turn character and camera</div>
+        <div class="guide-line"><strong>Left-click + drag</strong> — look around (camera only)</div>
+        <div class="guide-line"><strong>Scroll</strong> — zoom camera</div>
+      </div>
+      <button class="aux-btn" id="btn-guide-back">← Back</button>
     </div>
   </div>
   <div id="eab-icon"><canvas id="eab-canvas" width="52" height="52"></canvas><div id="eab-label">EAB</div></div>
@@ -106,7 +125,7 @@
 
   <aside class="controls">
     <h1>L'ura P4 3D</h1>
-    <p><strong style="color:#fff">WASD</strong> — W/S toward/away boss, A/D strafe. White cylinder = you. Starsplinter assigned randomly each cycle.</p>
+    <p><strong style="color:#fff">WASD</strong> — W/S forward/back, A/D strafe. Hold <strong style="color:#fff">right mouse</strong> to turn, <strong style="color:#fff">left mouse</strong> to look. White arrow = you. Starsplinter assigned randomly each cycle.</p>
     <div class="row">
       <button id="play">Pause</button>
       <button id="restart">Restart</button>
@@ -116,12 +135,8 @@
       <input id="speed" type="range" min="0.25" max="2" value="1" step="0.25">
     </div>
     <div class="row">
-      <label for="camDist" style="font-size:12px;color:var(--muted)">Camera distance</label>
-      <input id="camDist" type="range" min="15" max="110" value="42" step="1">
-    </div>
-    <div class="row">
-      <label for="camHeight" style="font-size:12px;color:var(--muted)">Camera height</label>
-      <input id="camHeight" type="range" min="2" max="38" value="17.5" step="0.5">
+      <label for="camDist" style="font-size:12px;color:var(--muted)">Camera zoom</label>
+      <input id="camDist" type="range" min="6" max="30" value="16.5" step="0.5">
     </div>
     <div class="helper-row">
       <input type="checkbox" id="helper" checked>
@@ -164,7 +179,7 @@
   </div>
 
   <div class="legend">
-    <strong>White:</strong> you &nbsp;|&nbsp; <strong>Blue:</strong> raid &nbsp;|&nbsp;
+    <strong>White arrow:</strong> you &nbsp;|&nbsp; <strong>Blue:</strong> raid &nbsp;|&nbsp;
     <strong>Gold:</strong> OT + cone &nbsp;|&nbsp; <strong>Yellow disc:</strong> light safe zone &nbsp;|&nbsp;
     <strong>Cyan ring:</strong> your Starsplinter target &nbsp;|&nbsp;
     Orientation A/B rotates shard pattern 45°

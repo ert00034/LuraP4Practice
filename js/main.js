@@ -1,7 +1,7 @@
-import { phase, world, scale, CAM_BACK, CAM_H, immunityColors } from './config.js';
+import { phase, world, scale, CAM_PITCH, immunityColors, STUN_HINTS } from './config.js';
 import { w2v, clamp } from './math.js';
 import { state, dom } from './state.js';
-import { initScene, updateCamera } from './scene.js';
+import { initScene, initCameraControls, updateCamera } from './scene.js';
 import { raidPosAt, currentHeaven, activeStarsplinterCycle, stunLiftAt } from './timing.js';
 import { getCycleAssignment } from './splinter-layout.js';
 import { showMessage } from './messages.js';
@@ -20,6 +20,7 @@ import {
 
 // ── Scene setup ──────────────────────────────────────────────────────────
 initScene();
+initCameraControls();
 
 document.getElementById("lua-close-btn").addEventListener("click", () => { dom.luaErrorEl.classList.remove("show"); state.luaErrorShowing = false; });
 
@@ -79,11 +80,12 @@ function doRestart() {
   document.getElementById('def-bar-wrap').classList.remove('show');
   document.getElementById('role-step').style.display = 'flex';
   document.getElementById('diff-step').style.display = 'none';
+  document.getElementById('guide-step').style.display = 'none';
   document.getElementById('eab-bind-row').style.display = 'none';
   document.getElementById('tank-continue-btn').style.display = 'none';
   dom.modeSelectEl.style.display = 'flex';
   state.running = false; dom.playBtn.textContent = "Pause";
-  state.camera.position.set(0, Number(dom.camHeightInput.value), -Number(dom.camDistInput.value) * scale); state.last = performance.now();
+  state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0, true); state.last = performance.now();
 }
 
 // ── Mode / role selection ────────────────────────────────────────────────
@@ -94,6 +96,7 @@ function startMode(mode) {
   buildEasterEggSchedule();
   buildStunHints();
   dom.modeSelectEl.style.display = 'none';
+  state.time = phase.reintegrationCast; // skip the reintegration cast bar straight to the stun
   if (state.selectedRole === 'tank') {
     document.getElementById('eab-icon').classList.add('show');
     document.getElementById('def-charges').classList.add('show');
@@ -120,6 +123,19 @@ document.getElementById("tank-continue-btn").addEventListener("click", () => sel
 document.getElementById("btn-back-role").addEventListener("click", () => {
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('role-step').style.display = 'flex';
+});
+
+// ── Role guide screen ────────────────────────────────────────────────────
+document.getElementById("btn-guide").addEventListener("click", () => {
+  document.getElementById('guide-role-label').textContent = roleLabels[state.selectedRole] + ' · Guide';
+  document.getElementById('guide-lines').innerHTML =
+    (STUN_HINTS[state.selectedRole] || STUN_HINTS.dps).map(l => `<div class="guide-line">${l}</div>`).join('');
+  document.getElementById('diff-step').style.display = 'none';
+  document.getElementById('guide-step').style.display = 'flex';
+});
+document.getElementById("btn-guide-back").addEventListener("click", () => {
+  document.getElementById('guide-step').style.display = 'none';
+  document.getElementById('diff-step').style.display = 'flex';
 });
 
 // ── EAB / Defensive keybind capture ──────────────────────────────────────
@@ -153,8 +169,9 @@ window.addEventListener("resize", () => {
 // ── Frame ─────────────────────────────────────────────────────────────────
 function frame(now) {
   const dt = Math.min(.08, (now - state.last) / 1000); state.last = now;
+  const simDt = state.running ? dt * Number(dom.speedInput.value) : 0;
   if (state.running) {
-    state.time += dt * Number(dom.speedInput.value);
+    state.time += simDt;
     if (state.time >= phase.duration) {
       state.time = phase.duration; state.running = false; dom.playBtn.textContent = "Play";
       if (!state.scoreboardShown) showScoreboard();
@@ -167,7 +184,7 @@ function frame(now) {
   const aft = state.time > phase.reintegrationCast + phase.stunDuration;
   const showRaid = dur || aft;
 
-  updateAdds(state.time, dt * Number(dom.speedInput.value), stackPos, otPos, immunePosNow);
+  updateAdds(state.time, simDt, stackPos, otPos, immunePosNow);
   updateDyingAdds(state.time);
 
   if (dur) state.playerPos = { ...stackPos };
@@ -191,7 +208,7 @@ function frame(now) {
   updateBeam(state.time);
   updateSplinters(state.time, stackPos);
   updateAIPlayers(state.time, stackPos, liftY);
-  updatePlayer(state.time, dt * Number(dom.speedInput.value), stackPos, liftY);
+  updatePlayer(state.time, simDt, stackPos, liftY);
   updateOTCone(state.time, stackPos);
   updateConeKills(state.time, stackPos);
   updateWorldMarkers(state.time);
@@ -262,10 +279,10 @@ function frame(now) {
   // ── Chaotic mode overlays ────────────────────────────────────────────────
   updateChaoticOverlays();
 
-  state.boss.rotation.y += dt * .35;
+  state.boss.rotation.y += simDt * .35;
   state.renderer.render(state.scene, state.camera);
   requestAnimationFrame(frame);
 }
 
-state.camera.position.set(0, CAM_H, -CAM_BACK * scale);
+updateCamera(0, true);
 requestAnimationFrame(frame);

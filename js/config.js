@@ -19,7 +19,7 @@ export const splinterSides = [1, -1, 1];
 export const splinterProfiles = [{ tangential: 46, radial: 13 }, { tangential: 58, radial: 14 }, { tangential: 56, radial: 10 }];
 export const immunityColors = [0xaad372, 0xffd45a, 0xff89c2];
 export const MARKER_COLORS = [0xffdd00, 0xff8c00, 0xaa44ff, 0x44ff88];
-export const CAM_BACK = 42, CAM_H = 17.5;
+export const CAM_PITCH = 1.44, CAM_DIST = 16.5; // spherical orbit camera defaults (pitch rad, distance in scene units)
 
 // ── Chaotic mode string constants ───────────────────────────────────────
 export const WCGOALS = ['⚽ World Cup Goal Scored!!!!', '⚽ GOOOOOAL!!!!', '⚽ HE SHOOTS HE SCORES!!!!', '⚽ UNBELIEVABLE SCENES!!!!'];

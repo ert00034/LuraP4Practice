@@ -22,8 +22,10 @@ export function buildEasterEggSchedule() {
 }
 
 // ── Stun hints ────────────────────────────────────────────────────────────
+// Role instructions live on the pre-play guide screen; the stun phase only
+// shows the chaotic-mode flavor lines.
 export function buildStunHints() {
-  const lines = dom.chaoticCheck.checked ? STUN_HINTS.chaotic : (STUN_HINTS[state.selectedRole] || STUN_HINTS.dps);
+  const lines = dom.chaoticCheck.checked ? STUN_HINTS.chaotic : [];
   const el = document.getElementById('stun-hints');
   el.innerHTML = lines.map(l => `<div class="hint-line">${l}</div>`).join('');
 }
