@@ -62,10 +62,11 @@ export function showScoreboard() {
   document.getElementById("sr-slice").textContent = `−${state.penalties.sliceOthers || 0}`;
   document.getElementById("sr-sliced").textContent = `−${state.penalties.sliced || 0}`;
   document.getElementById("sr-munch").textContent = `−${state.penalties.munched || 0}`;
-  document.getElementById("sr-midnight").textContent = `−${state.penalties.midnight || 0}`;
+  document.getElementById("sr-leftlight").textContent = `−${state.penalties.leftLight || 0}`;
   document.getElementById("sr-zap").textContent = `−${state.penalties.zapped || 0}`;
   document.getElementById("sr-wrongside").textContent = `−${state.penalties.wrongSide || 0}`;
   document.getElementById("sr-nodef").textContent = `−${state.penalties.noDefensive || 0}`;
   document.getElementById("sr-noeab").textContent = `−${state.penalties.noEabClear || 0}`;
+  document.getElementById("sr-addshnh").textContent = `−${state.penalties.addsHnH || 0}`;
   dom.scoreboardEl.classList.add("show"); state.scoreboardShown = true;
 }

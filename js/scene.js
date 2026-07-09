@@ -49,7 +49,7 @@ export function initScene() {
   // ── Three.js ─────────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x02030a);
-  scene.fog = new THREE.Fog(0x02030a, 18, 50);
+  // (No distance fog — distant raiders/adds should stay crisp.)
   const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, .1, 200);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
@@ -64,17 +64,19 @@ export function initScene() {
   state.keyLight = keyLight;
 
   // ── World markers — WoW-style: floating billboard symbol + light beam ────
-  const markerAngles = [0, 1, 2, 3].map(i => -Math.PI / 2 + phase.raidDirection * i * phase.raidAdvanceDegrees * Math.PI / 180);
-  const worldMarkers = markerAngles.map((angle, i) => {
-    const col = MARKER_COLORS[i];
+  // Indices 1..3 are the three Heaven positions; index 0 (the star at the
+  // stack point) is intentionally omitted — it vanished right after the stun.
+  const worldMarkers = [1, 2, 3].map(idx => {
+    const angle = -Math.PI / 2 + phase.raidDirection * idx * phase.raidAdvanceDegrees * Math.PI / 180;
+    const col = MARKER_COLORS[idx];
     const beamOut = new THREE.Mesh(new THREE.CylinderGeometry(.62, .82, 2.6, 24, 1, true),
       new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     const beamIn = new THREE.Mesh(new THREE.CylinderGeometry(.3, .44, 2.6, 24, 1, true),
       new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    const sprite = makeMarkerSprite(i, col);
+    const sprite = makeMarkerSprite(idx, col);
     const ring = makeRing(16, col, .85, .055);
     [beamOut, beamIn, sprite, ring].forEach(o => scene.add(o));
-    return { angle, beamOut, beamIn, sprite, ring, ringMat: ring.material };
+    return { angle, idx, beamOut, beamIn, sprite, ring, ringMat: ring.material };
   });
   state.worldMarkers = worldMarkers;
   setMarkerPositions(world.stackDistance);
@@ -239,6 +241,22 @@ export function initScene() {
   state.mPink = new THREE.MeshStandardMaterial({ color: 0xff5f86, emissive: 0x3d0614, roughness: .45 });
   state.mWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x777777, roughness: .25 });
 }
+
+// ── World → screen projection (for the floating boss cast bar) ───────────
+const _proj = new THREE.Vector3();
+export function worldToScreen(x, y, z) {
+  const cam = state.camera; cam.updateMatrixWorld();
+  _proj.set(x, y, z);
+  const camZ = _proj.clone().applyMatrix4(cam.matrixWorldInverse).z; // camera looks down -z
+  _proj.project(cam);
+  return {
+    x: (_proj.x * 0.5 + 0.5) * innerWidth,
+    y: (-_proj.y * 0.5 + 0.5) * innerHeight,
+    behind: camZ > 0
+  };
+}
+// Screen position just above the boss's head.
+export function bossHeadScreen() { return worldToScreen(0, world.bossRadius * scale * 2 + 0.8, 0); }
 
 // ── Camera — WoW-style orbit around the player ───────────────────────────
 export function camForward() { return { x: Math.sin(state.camYaw), y: Math.cos(state.camYaw) }; }

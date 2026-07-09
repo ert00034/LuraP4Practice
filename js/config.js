@@ -11,8 +11,8 @@ export const phase = {
   tankConeDelay: 0.5, tankConeDuration: 0.5
 };
 export const world = {
-  roomRadius: 285, bossRadius: 36, stackDistance: 134,
-  offTankDistance: 126, lightRadius: 60, shardLength: 90, coneLength: 109
+  roomRadius: 285, bossRadius: 36, stackDistance: 161,
+  offTankDistance: 151, lightRadius: 60, shardLength: 90, coneLength: 109
 };
 export const scale = 0.052;
 export const splinterSides = [1, -1, 1];
@@ -86,3 +86,42 @@ export const CHAOTIC_CORNERS = [
   { top: '90px', right: '270px', left: 'auto', bottom: 'auto' },
   { bottom: '120px', left: '16px', top: 'auto', right: 'auto' },
   { bottom: '120px', right: '270px', left: 'auto', top: 'auto' }];
+
+// ── Raid roster + note (overlay shown on normal+ difficulty) ─────────────
+// WoW class colours keyed by short slug.
+const CC = {
+  dk: '#C41E3A', dh: '#A330C9', druid: '#FF7C0A', evoker: '#33937F', hunter: '#AAD372',
+  mage: '#3FC7EB', monk: '#00FF98', pala: '#F48CBA', priest: '#ffffff', rogue: '#FFF468',
+  shaman: '#0070DD', warlock: '#8788EE', warrior: '#C69B6D'
+};
+// 20 raiders across 4 groups of 5 (for the raid frames).
+export const RAID_ROSTER = [
+  { name: 'Palashank', color: CC.pala, group: 0 },
+  { name: 'Gunrunner', color: CC.hunter, group: 0 },
+  { name: 'Alpacable', color: CC.druid, group: 0 },
+  { name: 'Stoic', color: CC.warrior, group: 0 },
+  { name: 'Deadhuman', color: CC.dk, group: 0 },
+  { name: 'Funts', color: CC.monk, group: 1 },
+  { name: 'Kreexwindrun', color: CC.shaman, group: 1 },
+  { name: 'Alehster', color: CC.mage, group: 1 },
+  { name: 'Diddly', color: CC.rogue, group: 1 },
+  { name: 'Shâdøwsîn', color: CC.warlock, group: 1 },
+  { name: 'Piburi', color: CC.priest, group: 2 },
+  { name: 'Vaporweight', color: CC.evoker, group: 2 },
+  { name: 'Vervâda', color: CC.dh, group: 2 },
+  { name: 'Balke', color: CC.warrior, group: 2 },
+  { name: 'Kotohito', color: CC.monk, group: 2 },
+  { name: 'Sobert', color: CC.mage, group: 3 },
+  { name: 'Skyhaven', color: CC.pala, group: 3 },
+  { name: 'Ryland', color: CC.hunter, group: 3 },
+  { name: 'Palabuns', color: CC.pala, group: 3 },
+  { name: 'Ashterah', color: CC.druid, group: 3 }
+];
+// Raid note: literal boundary lines + 3 rows of 4 class-coloured assignments.
+export const RAID_NOTE = [
+  { tag: 'intstart' },
+  { names: [['Deadhuman', CC.dk], ['Kreexwindrun', CC.shaman], ['Stoic', CC.warrior], ['Vervâda', CC.dh]] },
+  { names: [['Shâdøwsîn', CC.warlock], ['Gunrunner', CC.hunter], ['Vaporweight', CC.evoker], ['Alpacable', CC.druid]] },
+  { names: [['Palashank', CC.pala], ['Ashterah', CC.druid], ['Ryland', CC.hunter], ['Diddly', CC.rogue]] },
+  { tag: 'intend' }
+];

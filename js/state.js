@@ -34,6 +34,11 @@ export const dom = {
   reintHintEl: document.getElementById("reint-hint"),
   penaltyFlashEl: document.getElementById("penalty-flash"),
   modeSelectEl: document.getElementById("mode-select"),
+  legendEl: document.querySelector(".legend"),
+  neHeavenEl: document.getElementById("ne-heaven"),
+  neStarsEl: document.getElementById("ne-stars"),
+  raidNoteEl: document.getElementById("raid-note"),
+  raidFramesEl: document.getElementById("raid-frames"),
 };
 
 export const state = {
@@ -50,12 +55,14 @@ export const state = {
   selectedRole: 'dps', // 'dps' | 'light' | 'tank'
   helperOn: false,  // easy mode: movement helper ring, 0.5× score
   chaoticOn: false, // chaotic mode: distractions, raid deaths, 1.15× score
+  strafeKeys: 'ad', // 'ad' | 'qe' — which keys strafe left/right
 
   // ── Tank abilities ───────────────────────────────────────────────────
-  eabKey: 'e', eabCooldownUntil: -Infinity, eabConePos: null, eabConeDir: { x: 0, y: 1 }, eabConeExpiry: -Infinity, eabConeFired: false,
+  // Keybinds support an optional Shift modifier (eabShift / defShift).
+  eabKey: 'r', eabShift: false, eabCooldownUntil: -Infinity, eabConePos: null, eabConeDir: { x: 0, y: 1 }, eabConeExpiry: -Infinity, eabConeFired: false,
   tankEabWaveKillCycles: new Set(), checkedWavePenalties: new Set(),
-  defKey: 'f', defCharges: 3, defExpiry: -Infinity,
-  lightMovePenaltyExpiry: -Infinity,
+  defKey: 'f', defShift: false, defCharges: 3, defExpiry: -Infinity,
+  lightMovePenaltyExpiry: -Infinity, lastAddsHnHMsg: -999,
 
   // ── Adds ─────────────────────────────────────────────────────────────
   seed: 5, lastAddTime: -999, nextAddId: 1,
@@ -83,7 +90,7 @@ export const state = {
 
   // ── Messages ─────────────────────────────────────────────────────────
   messageExpiry: 0,
-  lastMunchTime: -999, lastMidnightTime: -999,
+  lastMunchTime: -999, lastLeftLightTime: -999,
 
   // ── Chaotic mode state ───────────────────────────────────────────────
   deadAI: new Set(),
@@ -98,7 +105,7 @@ export const state = {
 
   // ── Score ────────────────────────────────────────────────────────────
   score: 0,
-  penalties: { sliceOthers: 0, sliced: 0, munched: 0, midnight: 0, zapped: 0, wrongSide: 0 },
+  penalties: { sliceOthers: 0, sliced: 0, munched: 0, leftLight: 0, zapped: 0, wrongSide: 0, addsHnH: 0 },
   safeAccum: 0,
   scoreboardShown: false,
 

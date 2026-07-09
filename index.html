@@ -23,20 +23,16 @@
         <span class="role-title">🛡 Add Tank</span>
         <span class="role-desc">Soak adds · Control the cone · 3 AI Starsplinters</span>
       </button>
-      <div class="eab-row" id="eab-bind-row" style="display:none">
-        <label>Extra Action:</label>
-        <button class="eab-key-btn" id="eab-key-btn">E</button>
-        <label style="margin-left:14px">Defensive:</label>
-        <button class="eab-key-btn" id="def-key-btn">F</button>
-      </div>
-      <button class="mode-btn mode-normal" id="tank-continue-btn" style="display:none;margin-top:4px;text-align:center">
-        <span class="mode-title">Choose Difficulty</span>
-        <span class="mode-desc">Proceed to difficulty selection</span>
-      </button>
     </div>
     <div id="diff-step" style="display:none">
       <h2>L'ura — Phase 4</h2>
       <p class="mode-sub" id="diff-role-label">DPS / Healer · Choose difficulty</p>
+      <div class="eab-row" id="eab-bind-row" style="display:none">
+        <label>Extra Action:</label>
+        <button class="eab-key-btn" id="eab-key-btn">R</button>
+        <label style="margin-left:14px">Defensive:</label>
+        <button class="eab-key-btn" id="def-key-btn">F</button>
+      </div>
       <button class="mode-btn mode-easy" id="btn-easy">
         <span class="mode-title">▶ Play Easy</span>
         <span class="mode-desc">Movement helper enabled · 0.5× score</span>
@@ -85,6 +81,10 @@
     <div class="pill">Cycle <strong id="cycle">1 / 4</strong></div>
     <div class="pill">Score <strong id="scorepill">0</strong></div>
   </div>
+  <div id="next-events">
+    <div class="ne-item"><span class="ne-label">Heaven &amp; Hell</span><span class="ne-time" id="ne-heaven">—</span></div>
+    <div class="ne-item"><span class="ne-label">Starsplinters</span><span class="ne-time" id="ne-stars">—</span></div>
+  </div>
   <div id="raidcall">
     <div class="sp-slot" id="sp0"><div class="dir">⬅ LEFT</div><div class="lbl">Starsplinter 1</div></div>
     <div class="sp-slot" id="sp1"><div class="dir">RIGHT ➡</div><div class="lbl">Starsplinter 2</div></div>
@@ -111,11 +111,12 @@
         <div class="score-row"><span>Players sliced (−10 each)</span><span class="val neg" id="sr-slice">−0</span></div>
         <div class="score-row"><span>Got sliced (−10 each)</span><span class="val neg" id="sr-sliced">−0</span></div>
         <div class="score-row"><span>Got munched (−5 each)</span><span class="val neg" id="sr-munch">−0</span></div>
-        <div class="score-row"><span>Midnight Falls (−100 each)</span><span class="val neg" id="sr-midnight">−0</span></div>
+        <div class="score-row"><span>Left the light zone (−100 each)</span><span class="val neg" id="sr-leftlight">−0</span></div>
         <div class="score-row"><span>Got zapped (−100 each)</span><span class="val neg" id="sr-zap">−0</span></div>
         <div class="score-row"><span>Wrong side on Starsplinter (−15 each)</span><span class="val neg" id="sr-wrongside">−0</span></div>
         <div class="score-row"><span>Soaked without defensive (−5 each)</span><span class="val neg" id="sr-nodef">−0</span></div>
         <div class="score-row"><span>Adds hit raid — no EAB (−75 each)</span><span class="val neg" id="sr-noeab">−0</span></div>
+        <div class="score-row"><span>Adds hit raid in Heaven &amp; Hell (−15 each)</span><span class="val neg" id="sr-addshnh">−0</span></div>
       </div>
       <div class="score-actions">
         <button id="sbQuickReset">Quick Reset</button>
@@ -124,23 +125,37 @@
     </div>
   </div>
 
-  <aside class="controls">
-    <h1>L'ura P4 3D</h1>
-    <p><strong style="color:#fff">WASD</strong> — W/S forward/back, A/D strafe. Hold <strong style="color:#fff">right mouse</strong> to turn, <strong style="color:#fff">left mouse</strong> to look. White arrow = you. Starsplinter assigned randomly each cycle.</p>
-    <div class="row">
-      <button id="play">Pause</button>
-      <button id="restart">Quick Reset</button>
-      <button id="mainmenu">Main Menu</button>
+  <div id="right-dock">
+    <aside class="controls">
+      <h1>L'ura P4 3D</h1>
+      <p><strong style="color:#fff">WASD</strong> — W/S forward/back, strafe left/right. Hold <strong style="color:#fff">right mouse</strong> to turn, <strong style="color:#fff">left mouse</strong> to look. White arrow = you.</p>
+      <div class="row ctl-btns">
+        <button id="play">Pause</button>
+        <button id="restart">Quick Reset</button>
+        <button id="mainmenu">Main Menu</button>
+      </div>
+      <div class="row">
+        <label for="speed" style="font-size:12px;color:var(--muted)">Speed</label>
+        <input id="speed" type="range" min="0.5" max="1.5" value="1" step="0.25" list="speedticks">
+        <span id="speedval">1×</span>
+        <datalist id="speedticks">
+          <option value="0.5"></option><option value="0.75"></option><option value="1"></option><option value="1.25"></option><option value="1.5"></option>
+        </datalist>
+      </div>
+      <div class="row">
+        <label for="camDist" style="font-size:12px;color:var(--muted)">Camera zoom</label>
+        <input id="camDist" type="range" min="6" max="30" value="16.5" step="0.5">
+      </div>
+      <div class="row">
+        <label style="font-size:12px;color:var(--muted)">Strafe keys</label>
+        <button id="strafeToggle" class="mini-toggle">A / D</button>
+      </div>
+    </aside>
+    <div id="raid-overlay" style="display:none">
+      <div id="raid-note"></div>
+      <div id="raid-frames"></div>
     </div>
-    <div class="row">
-      <label for="speed" style="font-size:12px;color:var(--muted)">Speed</label>
-      <input id="speed" type="range" min="0.25" max="2" value="1" step="0.25">
-    </div>
-    <div class="row">
-      <label for="camDist" style="font-size:12px;color:var(--muted)">Camera zoom</label>
-      <input id="camDist" type="range" min="6" max="30" value="16.5" step="0.5">
-    </div>
-  </aside>
+  </div>
   <div id="boss-castbar">
     <div class="bcb-label" id="bcb-label">Heaven and Hell</div>
     <div class="bcb-track"><div class="bcb-fill" id="bcb-fill"></div></div>

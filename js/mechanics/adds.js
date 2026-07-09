@@ -43,7 +43,8 @@ export function spawnAdd(t, wave, fixedAngle) {
   state.adds.push({
     id: state.nextAddId++, pos: s, dir: { x: Math.cos(a), y: Math.sin(a) },
     speed: (wave ? phase.shaWaveSpeed : phase.shaSpeed) * (0.82 + rand() * .36),
-    wave, wobble: rand() * Math.PI * 2, soakedUntil: 0, lastSoakedAt: -999, mesh
+    wave, wobble: rand() * Math.PI * 2, soakedUntil: 0, lastSoakedAt: -999,
+    soakedByTank: false, countedHnH: false, mesh
   });
 }
 
@@ -60,10 +61,19 @@ export function updateAdds(t, dt, sp, otp, ip) {
           state.score -= 5; state.penalties.noDefensive = (state.penalties.noDefensive || 0) + 5;
           showMessage('NO DEFENSIVE! −5', 'bad', 2);
         }
+        a.soakedByTank = true;
         soakAdd(a, t, state.playerPos);
       }
     } else if (len2(sub2(a.pos, otp)) < 22) soakAdd(a, t, otp);
     if (currentHeaven(t) && len2(sub2(a.pos, ip)) < 20) soakAdd(a, t, ip);
+    // Add Tank: any add the tank fails to intercept that reaches the raid
+    // during Heaven & Hell movement costs points.
+    if (state.selectedRole === 'tank' && !a.wave && !a.countedHnH && !a.soakedByTank
+      && currentHeaven(t) && len2(sub2(a.pos, sp)) < 16) {
+      a.countedHnH = true;
+      state.score -= 15; state.penalties.addsHnH = (state.penalties.addsHnH || 0) + 15;
+      if (t - state.lastAddsHnHMsg > 2) { showMessage('ADDS HIT THE RAID! −15', 'bad', 2); state.lastAddsHnHMsg = t; }
+    }
     // Direction only changes via soakAdd
     a.mesh.material = t < a.soakedUntil ? state.mWhite : (a.wave ? state.mPink : state.mPurp);
     a.mesh.position.copy(w2v(a.pos, a.wave ? .09 : .08));

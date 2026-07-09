@@ -1,10 +1,12 @@
 import {
-  phase, GUILD_FIXED, STUN_HINTS, CHAOTIC_CORNERS, WCGOALS, GUILD_NAMES, GUILD_RESPONSES,
-  DISCORD_NAMES, DISCORD_MSGS, LUA_ERRORS, OFFLINE_RESPONSES, CHAOS_MOVE_CALLS, EASTER_EGGS
+  phase, GUILD_FIXED, CHAOTIC_CORNERS, WCGOALS, GUILD_NAMES, GUILD_RESPONSES,
+  DISCORD_NAMES, DISCORD_MSGS, LUA_ERRORS, OFFLINE_RESPONSES, CHAOS_MOVE_CALLS, EASTER_EGGS,
+  RAID_ROSTER, RAID_NOTE
 } from './config.js';
 import { clamp } from './math.js';
 import { state, dom } from './state.js';
-import { heavenCountdownAt, currentHeaven, activeStarsplinterCycle } from './timing.js';
+import { heavenCountdownAt, currentHeaven, activeStarsplinterCycle, nextHeavenIn, nextStarsplinterIn } from './timing.js';
+import { bossHeadScreen } from './scene.js';
 
 // ── Guild chat helpers ────────────────────────────────────────────────────
 export function guildResp(name, fallback) { return GUILD_FIXED[name] || fallback; }
@@ -22,12 +24,28 @@ export function buildEasterEggSchedule() {
 }
 
 // ── Stun hints ────────────────────────────────────────────────────────────
-// Role instructions live on the pre-play guide screen; the stun phase only
-// shows the chaotic-mode flavor lines.
+// Role instructions live on the pre-play guide screen; nothing is shown
+// on-screen during the stun phase.
 export function buildStunHints() {
-  const lines = state.chaoticOn ? STUN_HINTS.chaotic : [];
-  const el = document.getElementById('stun-hints');
-  el.innerHTML = lines.map(l => `<div class="hint-line">${l}</div>`).join('');
+  document.getElementById('stun-hints').innerHTML = '';
+}
+
+// ── Raid note + raid frames (shown on normal+ difficulty) ─────────────────
+export function buildRaidUI() {
+  // Note: literal boundary tags + class-coloured assignment rows.
+  dom.raidNoteEl.innerHTML = RAID_NOTE.map(row => {
+    if (row.tag) return `<div class="rn-tag">${row.tag}</div>`;
+    return `<div class="rn-row">${row.names.map(([n, c]) => `<span style="color:${c}">${n}</span>`).join('')}</div>`;
+  }).join('');
+  // Frames: 4 groups of 5, class-coloured cells.
+  let html = '';
+  for (let g = 0; g < 4; g++) {
+    html += `<div class="rf-col"><div class="rf-head">Group ${g + 1}</div>`;
+    html += RAID_ROSTER.filter(r => r.group === g).map(r =>
+      `<div class="rf-cell" style="--cc:${r.color}"><span class="rf-name">${r.name}</span></div>`).join('');
+    html += `</div>`;
+  }
+  dom.raidFramesEl.innerHTML = html;
 }
 export function updateStunHints(t) {
   const s = phase.reintegrationCast, e = s + phase.stunDuration;
@@ -60,26 +78,38 @@ export function updateStunHints(t) {
   });
 }
 
-// ── Boss cast bar (Heaven & Hell) ─────────────────────────────────────────
+// ── Boss cast bar (Heaven & Hell) — floats above the boss's head ──────────
+// Only shown while the boss is actually casting/channelling; the pre-cast
+// countdown lives in the next-events panel instead.
 export function updateBossCastBar(t) {
   const h = currentHeaven(t);
-  if (!h) {
-    // Show countdown to next Heaven and Hell
-    let nextStart = Infinity;
-    for (let i = 0; i < 3; i++) { const s = phase.firstHeaven + i * phase.heavenSpacing; if (s > t) { nextStart = s; break; } }
-    if (nextStart === Infinity) { dom.bossCastbarEl.classList.remove("show"); return; }
-    const remaining = Math.max(0, nextStart - t);
-    dom.bcbLabelEl.textContent = `Heaven & Hell — ${remaining.toFixed(1)}s`;
-    dom.bcbFillEl.className = "bcb-fill casting";
-    dom.bcbFillEl.style.width = `${clamp(1 - remaining / phase.heavenSpacing, 0, 1) * 100}%`;
-    dom.bossCastbarEl.classList.add("show"); return;
-  }
+  if (!h) { dom.bossCastbarEl.classList.remove("show"); return; }
   const casting = t < h.laserStart;
   const fill = casting ? (t - h.start) / phase.heavenRampDuration : 1 - (t - h.laserStart) / phase.heavenLaserDuration;
   dom.bcbLabelEl.textContent = casting ? "Heaven and Hell" : "Channeling";
   dom.bcbFillEl.className = "bcb-fill " + (casting ? "casting" : "channeling");
   dom.bcbFillEl.style.width = `${clamp(fill, 0, 1) * 100}%`;
   dom.bossCastbarEl.classList.add("show");
+  // Anchor above the boss head in screen space, clamped to a 5% margin so it
+  // never leaves the screen.
+  const p = bossHeadScreen();
+  const mx = innerWidth * 0.05, my = innerHeight * 0.05, barH = 46;
+  const left = clamp(p.x, mx, innerWidth - mx);
+  const top = clamp(p.behind ? my : p.y - barH, my, innerHeight - my - barH);
+  dom.bossCastbarEl.style.left = `${left}px`;
+  dom.bossCastbarEl.style.top = `${top}px`;
+}
+
+// ── Next-event countdowns (under the HUD pills) ───────────────────────────
+function fmtSecs(x) { return x == null ? '—' : `${x.toFixed(1)}s`; }
+export function updateNextEvents(t) {
+  const h = currentHeaven(t);
+  dom.neHeavenEl.textContent = h ? 'NOW' : fmtSecs(nextHeavenIn(t));
+  dom.neHeavenEl.classList.toggle('imminent', !h && (nextHeavenIn(t) ?? 99) <= 5);
+  const sc = activeStarsplinterCycle(t);
+  const starsActive = sc && t >= sc.start && t <= sc.end;
+  dom.neStarsEl.textContent = starsActive ? 'NOW' : fmtSecs(nextStarsplinterIn(t));
+  dom.neStarsEl.classList.toggle('imminent', !starsActive && (nextStarsplinterIn(t) ?? 99) <= 5);
 }
 
 // ── Cast bar ─────────────────────────────────────────────────────────────
@@ -120,7 +150,7 @@ export function updateRaidCall(t) {
       dom.movecountdownEl.textContent = Math.max(1, Math.ceil(countdown.remaining));
     }
     const cycle = activeStarsplinterCycle(t);
-    if (cycle && t >= cycle.start - 1.5) {
+    if (state.helperOn && cycle && t >= cycle.start - 1.5) { // starsplinter callout is an easy-mode aid
       dom.raidcallEl.classList.add("show");
       dom.spSlotEls.forEach((el, i) => {
         const apply = phase.firstStarsplinter + cycle.index * phase.starsplinterSpacing + i * phase.starsApplyGap;

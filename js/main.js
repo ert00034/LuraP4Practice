@@ -11,16 +11,17 @@ import { updatePlayer } from './mechanics/player.js';
 import { updateAIPlayers } from './mechanics/ai.js';
 import { updateSplinters } from './mechanics/splinters.js';
 import { updateBeam, updateOTCone, updateWorldMarkers, updateStun } from './mechanics/heaven.js';
-import { checkExplosions, checkOnYouSP, checkZap, checkMunch, checkMidnight } from './mechanics/collision.js';
+import { checkExplosions, checkOnYouSP, checkZap, checkMunch, checkLeftLight } from './mechanics/collision.js';
 import { updateScore, showScoreboard } from './mechanics/score.js';
 import {
-  updateRaidCall, updateHud, updateCastBar, updateBossCastBar, updateStunHints,
-  buildStunHints, buildEasterEggSchedule, updateDefUI, updateChaoticOverlays
+  updateRaidCall, updateHud, updateCastBar, updateBossCastBar, updateStunHints, updateNextEvents,
+  buildStunHints, buildRaidUI, buildEasterEggSchedule, updateDefUI, updateChaoticOverlays
 } from './ui.js';
 
 // ── Scene setup ──────────────────────────────────────────────────────────
 initScene();
 initCameraControls();
+buildRaidUI();
 
 document.getElementById("lua-close-btn").addEventListener("click", () => { dom.luaErrorEl.classList.remove("show"); state.luaErrorShowing = false; });
 
@@ -28,15 +29,16 @@ document.getElementById("lua-close-btn").addEventListener("click", () => { dom.l
 window.addEventListener("keydown", e => {
   if ("wasd".includes(e.key.toLowerCase()) || e.key === ' ') e.preventDefault(); // space must never activate focused UI
   state.keys[e.key.toLowerCase()] = true;
-  if (state.selectedRole === 'tank' && state.running && e.key.toLowerCase() === state.eabKey && state.time > state.eabCooldownUntil
-    && state.time > phase.reintegrationCast + phase.stunDuration) {
+  const afterStun = state.time > phase.reintegrationCast + phase.stunDuration;
+  if (state.selectedRole === 'tank' && state.running && e.key.toLowerCase() === state.eabKey && e.shiftKey === state.eabShift
+    && state.time > state.eabCooldownUntil && afterStun) {
     state.eabConePos = { ...state.playerPos }; state.eabConeDir = { ...state.playerFacingDir };
     state.eabConeExpiry = state.time + 0.5; state.eabCooldownUntil = state.time + 18; state.eabConeFired = false;
     const ac = activeStarsplinterCycle(state.time);
     if (ac && state.waveSpawned.has(ac.index)) state.tankEabWaveKillCycles.add(ac.index);
   }
-  if (state.selectedRole === 'tank' && state.running && e.key.toLowerCase() === state.defKey && state.defCharges > 0
-    && state.time > phase.reintegrationCast + phase.stunDuration) {
+  if (state.selectedRole === 'tank' && state.running && e.key.toLowerCase() === state.defKey && e.shiftKey === state.defShift
+    && state.defCharges > 0 && afterStun) {
     state.defCharges--; state.defExpiry = state.time + 6;
     updateDefUI();
   }
@@ -65,7 +67,7 @@ function resetSim() {
   state.checkedExplosions.clear(); state.checkedLasers.clear(); state.firedConeKills.clear();
   state.tankEabWaveKillCycles.clear(); state.checkedWavePenalties.clear();
   state.playerPos = { x: 0, y: -world.stackDistance }; state.playerFacingDir = { x: 0, y: 1 };
-  state.messageExpiry = 0; dom.messageEl.className = ''; state.lastMunchTime = -999; state.lastMidnightTime = -999;
+  state.messageExpiry = 0; dom.messageEl.className = ''; state.lastMunchTime = -999; state.lastLeftLightTime = -999; state.lastAddsHnHMsg = -999;
   state.score = 0; state.safeAccum = 0; Object.keys(state.penalties).forEach(k => state.penalties[k] = 0); state.scoreboardShown = false;
   state.deadAI.clear(); state.aiPlayers.forEach(ai => ai.mesh.visible = true);
   state.worldCupExpiry = -999; state.nextWorldCupTime = 18 + Math.random() * 8; dom.worldCupEl.classList.remove("show");
@@ -95,7 +97,7 @@ function goMainMenu() {
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('guide-step').style.display = 'none';
   document.getElementById('eab-bind-row').style.display = 'none';
-  document.getElementById('tank-continue-btn').style.display = 'none';
+  document.getElementById('raid-overlay').style.display = 'none';
   dom.modeSelectEl.style.display = 'flex';
 }
 
@@ -114,6 +116,8 @@ function startMode(mode) {
   setMarkerPositions(state.selectedRole === 'tank' ? world.offTankDistance : world.stackDistance);
   buildEasterEggSchedule();
   buildStunHints();
+  // Raid note + frames overlay: shown on normal and chaotic, not easy.
+  document.getElementById('raid-overlay').style.display = mode === 'easy' ? 'none' : 'flex';
   dom.modeSelectEl.style.display = 'none';
   state.time = phase.reintegrationCast; // skip the reintegration cast bar straight to the stun
   if (state.selectedRole === 'tank') {
@@ -128,17 +132,14 @@ const roleLabels = { 'dps': 'DPS / Healer', 'light': 'Light Holder', 'tank': 'Ad
 function selectRole(role) {
   state.selectedRole = role;
   document.getElementById('diff-role-label').textContent = roleLabels[role] + ' · Choose difficulty';
+  // The Add Tank keybind row lives on the difficulty screen, tank-only.
+  document.getElementById('eab-bind-row').style.display = role === 'tank' ? 'flex' : 'none';
   document.getElementById('role-step').style.display = 'none';
   document.getElementById('diff-step').style.display = 'flex';
 }
 document.getElementById("btn-role-dps").addEventListener("click", () => selectRole('dps'));
 document.getElementById("btn-role-light").addEventListener("click", () => selectRole('light'));
-document.getElementById("btn-role-tank").addEventListener("click", () => {
-  document.getElementById('eab-bind-row').style.display = 'flex';
-  document.getElementById('tank-continue-btn').style.display = 'block';
-  state.selectedRole = 'tank';
-});
-document.getElementById("tank-continue-btn").addEventListener("click", () => selectRole('tank'));
+document.getElementById("btn-role-tank").addEventListener("click", () => selectRole('tank'));
 document.getElementById("btn-back-role").addEventListener("click", () => {
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('role-step').style.display = 'flex';
@@ -164,14 +165,19 @@ let capturingEab = false, capturingDef = false;
 eabKeyBtn.addEventListener("click", () => { capturingEab = true; capturingDef = false; eabKeyBtn.textContent = '…'; eabKeyBtn.classList.add('capturing'); });
 defKeyBtn.addEventListener("click", () => { capturingDef = true; capturingEab = false; defKeyBtn.textContent = '…'; defKeyBtn.classList.add('capturing'); });
 window.addEventListener("keydown", e => {
+  if (!capturingEab && !capturingDef) return;
+  // A bare modifier keeps the capture open so it can be used as a prefix.
+  if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+  e.preventDefault();
+  const shift = e.shiftKey, key = e.key.toLowerCase();
+  const label = (shift ? '⇧' : '') + e.key.toUpperCase();
   if (capturingEab) {
-    e.preventDefault(); state.eabKey = e.key.toLowerCase();
-    eabKeyBtn.textContent = e.key.toUpperCase(); eabKeyBtn.classList.remove('capturing'); capturingEab = false; return;
-  }
-  if (capturingDef) {
-    e.preventDefault(); state.defKey = e.key.toLowerCase();
-    defKeyBtn.textContent = e.key.toUpperCase(); document.getElementById('def-key-label').textContent = e.key.toUpperCase();
-    defKeyBtn.classList.remove('capturing'); capturingDef = false; return;
+    state.eabKey = key; state.eabShift = shift;
+    eabKeyBtn.textContent = label; eabKeyBtn.classList.remove('capturing'); capturingEab = false;
+  } else {
+    state.defKey = key; state.defShift = shift;
+    defKeyBtn.textContent = label; document.getElementById('def-key-label').textContent = label;
+    defKeyBtn.classList.remove('capturing'); capturingDef = false;
   }
 }, true);
 
@@ -183,6 +189,16 @@ dom.restartBtn.addEventListener("click", quickReset);
 document.getElementById("mainmenu").addEventListener("click", goMainMenu);
 document.getElementById("sbQuickReset").addEventListener("click", quickReset);
 document.getElementById("sbRestart").addEventListener("click", goMainMenu);
+// Strafe-key toggle (A/D ↔ Q/E)
+const strafeBtn = document.getElementById("strafeToggle");
+strafeBtn.addEventListener("click", () => {
+  state.strafeKeys = state.strafeKeys === 'ad' ? 'qe' : 'ad';
+  strafeBtn.textContent = state.strafeKeys === 'ad' ? 'A / D' : 'Q / E';
+});
+// Speed readout next to the notched slider
+const speedVal = document.getElementById("speedval");
+const showSpeed = () => { speedVal.textContent = `${+dom.speedInput.value}×`; };
+dom.speedInput.addEventListener("input", showSpeed); showSpeed();
 window.addEventListener("resize", () => {
   state.camera.aspect = innerWidth / innerHeight; state.camera.updateProjectionMatrix(); state.renderer.setSize(innerWidth, innerHeight);
 });
@@ -230,13 +246,15 @@ function frame(now) {
   updateSplinters(state.time, stackPos);
   updateAIPlayers(state.time, stackPos, liftY);
   updatePlayer(state.time, simDt, stackPos, liftY);
+  updateCamera(liftY); // camera first so screen-space projections (cast bar) are current
   updateOTCone(state.time, stackPos);
   updateConeKills(state.time, stackPos);
   updateWorldMarkers(state.time);
   updateStunHints(state.time);
   updateBossCastBar(state.time);
   updateCastBar(state.time);
-  updateCamera(liftY);
+  // Legend shows only while paused mid-run
+  dom.legendEl.style.display = (!state.running && dom.modeSelectEl.style.display === 'none' && !state.scoreboardShown) ? 'block' : 'none';
   // reintHintEl opacity managed by updateStunHints
   if (state.score < state.prevScore) state.penaltyFlashExpiry = state.time + 0.15;
   dom.penaltyFlashEl.classList.toggle("on", state.time < state.penaltyFlashExpiry);
@@ -257,9 +275,10 @@ function frame(now) {
       ctx2.arc(cx, cy, rad, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
       ctx2.closePath(); ctx2.fillStyle = 'rgba(255,122,69,0.45)'; ctx2.fill();
     }
-    ctx2.font = 'bold 13px monospace'; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+    const eabLabel = (state.eabShift ? '⇧' : '') + state.eabKey.toUpperCase();
+    ctx2.font = `bold ${eabLabel.length > 1 ? 12 : 15}px monospace`; ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
     ctx2.fillStyle = onCd ? '#ff7a45' : '#fff';
-    ctx2.fillText(state.eabKey.toUpperCase(), cx, cy);
+    ctx2.fillText(eabLabel, cx, cy);
   }
   // Defensive bar + pips
   if (state.selectedRole === 'tank' && state.running) {
@@ -272,6 +291,7 @@ function frame(now) {
   }
   updateRaidCall(state.time);
   updateHud(state.time);
+  updateNextEvents(state.time);
   if (aft) {
     updateScore(state.time, dt, stackPos);
     checkExplosions(state.time, stackPos);
@@ -294,7 +314,7 @@ function frame(now) {
         }
       }
     }
-    checkMidnight(state.time, stackPos);
+    checkLeftLight(state.time, stackPos);
   }
 
   // ── Chaotic mode overlays ────────────────────────────────────────────────

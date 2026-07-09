@@ -41,3 +41,13 @@ export function markerArrivalTime(i) {
   if (i === 0) return phase.firstHeaven;
   return phase.firstHeaven + (i - 1) * phase.heavenSpacing + phase.heavenRampDuration + phase.heavenLaserDuration;
 }
+// Seconds until the next Heaven & Hell cast begins (null if none remain).
+export function nextHeavenIn(t) {
+  for (let i = 0; i < 3; i++) { const s = phase.firstHeaven + i * phase.heavenSpacing; if (t < s) return s - t; }
+  return null;
+}
+// Seconds until the next Starsplinter set begins (null if none remain).
+export function nextStarsplinterIn(t) {
+  for (let c = 0; c < 4; c++) { const s = phase.firstStarsplinter + c * phase.starsplinterSpacing; if (t < s) return s - t; }
+  return null;
+}

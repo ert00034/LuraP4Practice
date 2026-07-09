@@ -108,11 +108,12 @@ export function checkMunch(t, stackPos) {
   }
 }
 
-export function checkMidnight(t, stackPos) {
+// Penalty for leaving the light/safe zone around the raid stack.
+export function checkLeftLight(t, stackPos) {
   if (t < phase.reintegrationCast + phase.stunDuration) return;
-  if (t - state.lastMidnightTime < 3) return;
+  if (t - state.lastLeftLightTime < 3) return;
   if (len2(sub2(state.playerPos, stackPos)) > world.lightRadius) {
-    state.score -= 100; state.penalties.midnight = (state.penalties.midnight || 0) + 100;
-    showMessage('MIDNIGHT FALLS! −100', 'danger', 2.5); state.lastMidnightTime = t;
+    state.score -= 100; state.penalties.leftLight = (state.penalties.leftLight || 0) + 100;
+    showMessage('LEFT THE LIGHT! −100', 'danger', 2.5); state.lastLeftLightTime = t;
   }
 }
