@@ -16,11 +16,9 @@
     button{border:1px solid rgb(255 255 255/14%);border-radius:8px;background:#1d2134;
       color:var(--text);padding:8px 10px;font:inherit;cursor:pointer;}
     button:hover{border-color:rgb(255 255 255/30%);}
+    /* No focus glow — pointer interactions blur immediately and space is reserved for the game */
+    button:focus,button:focus-visible,input:focus,input:focus-visible{outline:none;box-shadow:none;}
     input[type="range"]{width:100%;accent-color:var(--blue);}
-    .helper-row{margin-top:10px;display:flex;align-items:flex-start;gap:8px;}
-    .helper-row input[type="checkbox"]{margin-top:2px;accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer;}
-    .helper-row label{font-size:11px;color:var(--muted);cursor:pointer;line-height:1.4;}
-    .helper-row label strong{color:#ffcc44;}
     .legend{position:fixed;left:16px;bottom:16px;width:min(540px,calc(100vw - 32px));
       padding:12px 14px;color:var(--muted);font-size:12px;line-height:1.5;z-index:2;}
     .legend strong{color:var(--text);}
@@ -146,11 +144,6 @@
       background:rgb(4 8 24/82%);border:1px solid rgb(133 216 255/22%);
       border-radius:9px;padding:10px 22px;opacity:0;line-height:1.35;
       width:100%;box-sizing:border-box;}
-    /* Chaotic toggle */
-    .chaotic-row{margin-top:10px;padding-top:10px;border-top:1px solid rgb(255 255 255/10%);display:flex;align-items:flex-start;gap:8px;}
-    .chaotic-row input[type="checkbox"]{margin-top:2px;accent-color:#ff9f1c;width:15px;height:15px;flex-shrink:0;cursor:pointer;}
-    .chaotic-row label{font-size:11px;cursor:pointer;line-height:1.4;color:#ff9f1c;}
-    .chaotic-row label span{color:var(--muted);}
     /* Boss cast bar */
     #boss-castbar{position:fixed;top:10px;left:50%;transform:translateX(-50%);
       width:230px;z-index:4;pointer-events:none;opacity:0;transition:opacity .18s;

@@ -118,7 +118,8 @@
         <div class="score-row"><span>Adds hit raid — no EAB (−75 each)</span><span class="val neg" id="sr-noeab">−0</span></div>
       </div>
       <div class="score-actions">
-        <button id="sbRestart">Play Again</button>
+        <button id="sbQuickReset">Quick Reset</button>
+        <button id="sbRestart">Main Menu</button>
       </div>
     </div>
   </div>
@@ -128,7 +129,8 @@
     <p><strong style="color:#fff">WASD</strong> — W/S forward/back, A/D strafe. Hold <strong style="color:#fff">right mouse</strong> to turn, <strong style="color:#fff">left mouse</strong> to look. White arrow = you. Starsplinter assigned randomly each cycle.</p>
     <div class="row">
       <button id="play">Pause</button>
-      <button id="restart">Restart</button>
+      <button id="restart">Quick Reset</button>
+      <button id="mainmenu">Main Menu</button>
     </div>
     <div class="row">
       <label for="speed" style="font-size:12px;color:var(--muted)">Speed</label>
@@ -137,21 +139,6 @@
     <div class="row">
       <label for="camDist" style="font-size:12px;color:var(--muted)">Camera zoom</label>
       <input id="camDist" type="range" min="6" max="30" value="16.5" step="0.5">
-    </div>
-    <div class="helper-row">
-      <input type="checkbox" id="helper" checked>
-      <label for="helper">Show movement helper (Starsplinter target ring)<br>
-        <strong>⚠ Enabled: score ×0.5 per second</strong></label>
-    </div>
-    <div class="helper-row">
-      <input type="checkbox" id="markers">
-      <label for="markers">Show position markers<br>
-        <span style="color:var(--muted);font-size:10px">Coloured cylinders at raid spots</span></label>
-    </div>
-    <div class="chaotic-row">
-      <input type="checkbox" id="chaotic">
-      <label for="chaotic">🔥 CHAOTIC FINAL PHASE ATTEMPT<br>
-        <span>Surprise callouts · Raid dies · 1.3pts/s · ⚽</span></label>
     </div>
   </aside>
   <div id="boss-castbar">

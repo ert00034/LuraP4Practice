@@ -28,7 +28,7 @@ export function updateSplinters(t, stackPos) {
         ? explode + (t - state.playerSplinterForceExplodeAt) : t;
       if (tEff < apply || tEff > retEnd) { li += 6; continue; }
       // Show target ring only if helper enabled
-      if (dom.helperCheck.checked && tEff < explode) {
+      if (state.helperOn && tEff < explode) {
         state.targetRing.visible = true; state.targetRing.position.copy(w2v(drops[i], .03));
       }
       state.splinterMeshes[i].visible = true; state.splinterMeshes[i].position.copy(w2v(state.playerPos, .38));

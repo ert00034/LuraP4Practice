@@ -33,7 +33,7 @@ export function updateAIPlayers(t, stackPos, liftY) {
       const st = splinterState(t, cycle.index, ai.spIndex, stackPos, eDrop);
       pos = st ? st.pos : add2(stackPos, ai.baseOffset);
       // Chaotic fakeout: briefly move toward wrong side then self-correct
-      if (dom.chaoticCheck.checked && ai.spIndex < 2 && drops) {
+      if (state.chaoticOn && ai.spIndex < 2 && drops) {
         const fo = getCycleFakeout(cycle.index, drops)[ai.spIndex];
         if (fo) {
           const applyI = phase.firstStarsplinter + cycle.index * phase.starsplinterSpacing + ai.spIndex * phase.starsApplyGap;
@@ -58,6 +58,6 @@ export function updateAIPlayers(t, stackPos, liftY) {
       }
     }
     ai.currentPos = pos;
-    ai.mesh.position.copy(w2v(pos, .325 + (dur ? liftY : 0)));
+    ai.mesh.position.copy(w2v(pos, ai.baseY + (dur ? liftY : 0)));
   });
 }

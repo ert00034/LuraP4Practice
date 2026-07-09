@@ -25,7 +25,7 @@ export function buildEasterEggSchedule() {
 // Role instructions live on the pre-play guide screen; the stun phase only
 // shows the chaotic-mode flavor lines.
 export function buildStunHints() {
-  const lines = dom.chaoticCheck.checked ? STUN_HINTS.chaotic : [];
+  const lines = state.chaoticOn ? STUN_HINTS.chaotic : [];
   const el = document.getElementById('stun-hints');
   el.innerHTML = lines.map(l => `<div class="hint-line">${l}</div>`).join('');
 }
@@ -93,7 +93,7 @@ export function updateCastBar(t) {
 export function updateRaidCall(t) {
   const countdown = heavenCountdownAt(t);
   const heaven = currentHeaven(t);
-  const chaotic = dom.chaoticCheck.checked;
+  const chaotic = state.chaoticOn;
   if (chaotic) {
     // SP bar hidden in chaos
     dom.raidcallEl.classList.remove("show");
@@ -154,7 +154,7 @@ export function updateDefUI() {
 // ── Chaotic mode overlays ─────────────────────────────────────────────────
 export function updateChaoticOverlays() {
   const time = state.time;
-  if (dom.chaoticCheck.checked && state.running) {
+  if (state.chaoticOn && state.running) {
     // World cup
     if (time >= state.nextWorldCupTime) {
       const c = CHAOTIC_CORNERS[Math.floor(Math.random() * 4)];

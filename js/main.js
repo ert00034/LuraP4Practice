@@ -1,7 +1,7 @@
 import { phase, world, scale, CAM_PITCH, immunityColors, STUN_HINTS } from './config.js';
 import { w2v, clamp } from './math.js';
 import { state, dom } from './state.js';
-import { initScene, initCameraControls, updateCamera } from './scene.js';
+import { initScene, initCameraControls, updateCamera, setMarkerPositions } from './scene.js';
 import { raidPosAt, currentHeaven, activeStarsplinterCycle, stunLiftAt } from './timing.js';
 import { getCycleAssignment } from './splinter-layout.js';
 import { showMessage } from './messages.js';
@@ -26,7 +26,7 @@ document.getElementById("lua-close-btn").addEventListener("click", () => { dom.l
 
 // ── Input ────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
-  if ("wasd".includes(e.key.toLowerCase())) e.preventDefault();
+  if ("wasd".includes(e.key.toLowerCase()) || e.key === ' ') e.preventDefault(); // space must never activate focused UI
   state.keys[e.key.toLowerCase()] = true;
   if (state.selectedRole === 'tank' && state.running && e.key.toLowerCase() === state.eabKey && state.time > state.eabCooldownUntil
     && state.time > phase.reintegrationCast + phase.stunDuration) {
@@ -43,9 +43,15 @@ window.addEventListener("keydown", e => {
 });
 window.addEventListener("keyup", e => { state.keys[e.key.toLowerCase()] = false; });
 window.addEventListener("blur", () => Object.keys(state.keys).forEach(k => state.keys[k] = false));
+// Drop focus after any pointer interaction so keyboard input stays with the game
+window.addEventListener("pointerup", () => {
+  const el = document.activeElement;
+  if (el && el !== document.body && typeof el.blur === 'function') el.blur();
+});
 
-// ── Restart ──────────────────────────────────────────────────────────────
-function doRestart() {
+// ── Reset / restart ──────────────────────────────────────────────────────
+// Clears all sim state without touching the mode-select overlay.
+function resetSim() {
   for (const a of state.adds) state.scene.remove(a.mesh);
   for (const d of state.dyingAdds) state.scene.remove(d.mesh);
   state.adds = []; state.dyingAdds = []; state.time = 0; state.seed = 5; state.lastAddTime = -999; state.nextAddId = 1; state.waveSpawned = new Set();
@@ -78,21 +84,34 @@ function doRestart() {
   document.getElementById('eab-icon').classList.remove('show');
   document.getElementById('def-charges').classList.remove('show');
   document.getElementById('def-bar-wrap').classList.remove('show');
+  state.running = false; dom.playBtn.textContent = "Pause";
+  state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0, true); state.last = performance.now();
+}
+
+// Main menu: full reset back to the role-select overlay
+function goMainMenu() {
+  resetSim();
   document.getElementById('role-step').style.display = 'flex';
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('guide-step').style.display = 'none';
   document.getElementById('eab-bind-row').style.display = 'none';
   document.getElementById('tank-continue-btn').style.display = 'none';
   dom.modeSelectEl.style.display = 'flex';
-  state.running = false; dom.playBtn.textContent = "Pause";
-  state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0, true); state.last = performance.now();
+}
+
+// Quick reset: instantly restart with the same role and difficulty
+function quickReset() {
+  if (dom.modeSelectEl.style.display !== 'none') return; // nothing to reset on the menu
+  resetSim();
+  startMode(state.selectedMode);
 }
 
 // ── Mode / role selection ────────────────────────────────────────────────
 function startMode(mode) {
   state.selectedMode = mode;
-  dom.helperCheck.checked = (mode === 'easy');
-  dom.chaoticCheck.checked = (mode === 'chaotic');
+  state.helperOn = (mode === 'easy');
+  state.chaoticOn = (mode === 'chaotic');
+  setMarkerPositions(state.selectedRole === 'tank' ? world.offTankDistance : world.stackDistance);
   buildEasterEggSchedule();
   buildStunHints();
   dom.modeSelectEl.style.display = 'none';
@@ -160,8 +179,10 @@ document.getElementById("btn-easy").addEventListener("click", () => startMode('e
 document.getElementById("btn-normal").addEventListener("click", () => startMode('normal'));
 document.getElementById("btn-chaotic").addEventListener("click", () => startMode('chaotic'));
 dom.playBtn.addEventListener("click", () => { state.running = !state.running; dom.playBtn.textContent = state.running ? "Pause" : "Play"; state.last = performance.now(); });
-dom.restartBtn.addEventListener("click", doRestart);
-document.getElementById("sbRestart").addEventListener("click", doRestart);
+dom.restartBtn.addEventListener("click", quickReset);
+document.getElementById("mainmenu").addEventListener("click", goMainMenu);
+document.getElementById("sbQuickReset").addEventListener("click", quickReset);
+document.getElementById("sbRestart").addEventListener("click", goMainMenu);
 window.addEventListener("resize", () => {
   state.camera.aspect = innerWidth / innerHeight; state.camera.updateProjectionMatrix(); state.renderer.setSize(innerWidth, innerHeight);
 });

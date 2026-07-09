@@ -41,7 +41,7 @@ export function checkExplosions(t, stackPos) {
             showMessage('YOU GOT SLICED! −10', 'danger'); break;
           }
         }
-        if (dom.chaoticCheck.checked) {
+        if (state.chaoticOn) {
           let killedAny = false;
           state.aiPlayers.forEach((ai, idx) => {
             if (state.deadAI.has(idx) || !ai.mesh.visible) return;
@@ -66,7 +66,7 @@ export function checkOnYouSP(t, stackPos) {
   const key = `onyou-${cycle.index}`;
   if (t >= apply && t < apply + .15 && !state.checkedExplosions.has(key)) {
     state.checkedExplosions.add(key);
-    if (dom.chaoticCheck.checked) {
+    if (state.chaoticOn) {
       const line = chaoticSPLines[Math.floor(Math.random() * chaoticSPLines.length)];
       showMessage(line, 'bad', 1.0);
     } else {

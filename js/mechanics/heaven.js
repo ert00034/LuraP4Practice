@@ -66,16 +66,20 @@ export function updateOTCone(t, stackPos) {
 
 // ── World markers ─────────────────────────────────────────────────────────
 export function updateWorldMarkers(t) {
-  if (!dom.markersCheck.checked) { state.worldMarkers.forEach(m => { m.mesh.visible = m.ring.visible = false; }); return; }
   const stunEnd = phase.reintegrationCast + phase.stunDuration;
   state.worldMarkers.forEach((m, i) => {
     const arr = markerArrivalTime(i), f0 = arr - .5, f1 = arr + 1.8;
-    if (t >= f1 || (i === 0 && t > stunEnd)) { m.mesh.visible = m.ring.visible = false; return; }
-    m.mesh.visible = m.ring.visible = true;
+    const hide = t >= f1 || (i === 0 && t > stunEnd);
+    m.sprite.visible = m.ring.visible = m.beamIn.visible = m.beamOut.visible = !hide;
+    if (hide) return;
     const alpha = t >= f0 ? 1 - smooth((t - f0) / (f1 - f0)) : 1;
-    m.mat.opacity = .5 * alpha; m.ringMat.opacity = .85 * alpha;
-    const isNext = i > 0 && t < markerArrivalTime(i) - 1 && (i === 1 ? true : t >= markerArrivalTime(i - 1));
-    m.mat.emissiveIntensity = isNext ? .35 + .2 * Math.sin(t * 5) : .35;
+    const isNext = i > 0 && t < arr - 1 && (i === 1 ? true : t >= markerArrivalTime(i - 1));
+    const pulse = isNext ? .8 + .3 * Math.sin(t * 5) : 1;
+    m.beamOut.material.opacity = .14 * alpha * pulse;
+    m.beamIn.material.opacity = .3 * alpha * pulse;
+    m.sprite.material.opacity = alpha;
+    m.ringMat.opacity = .85 * alpha;
+    m.sprite.position.y = 2.9 + Math.sin(t * 2 + i * 1.7) * .12; // gentle bob
   });
 }
 

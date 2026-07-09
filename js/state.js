@@ -11,9 +11,6 @@ export const dom = {
   speedInput: document.getElementById("speed"),
   camDistInput: document.getElementById("camDist"),
   spFlashEl: document.getElementById("sp-flash"),
-  helperCheck: document.getElementById("helper"),
-  chaoticCheck: document.getElementById("chaotic"),
-  markersCheck: document.getElementById("markers"),
   worldCupEl: document.getElementById("worldcup"),
   guildChatEl: document.getElementById("guildchat"),
   gcMsgsEl: document.getElementById("gc-messages"),
@@ -51,6 +48,8 @@ export const state = {
   playerSplinterForceExplodeAt: Infinity,
   selectedMode: 'normal',
   selectedRole: 'dps', // 'dps' | 'light' | 'tank'
+  helperOn: false,  // easy mode: movement helper ring, 0.5× score
+  chaoticOn: false, // chaotic mode: distractions, raid deaths, 1.15× score
 
   // ── Tank abilities ───────────────────────────────────────────────────
   eabKey: 'e', eabCooldownUntil: -Infinity, eabConePos: null, eabConeDir: { x: 0, y: 1 }, eabConeExpiry: -Infinity, eabConeFired: false,

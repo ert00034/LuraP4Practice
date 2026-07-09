@@ -11,7 +11,7 @@ export function updateScore(t, dt, stackPos) {
   if (state.selectedRole === 'light') {
     const lightCoversRaid = len2(sub2(state.playerPos, stackPos)) <= world.lightRadius;
     if (lightCoversRaid) {
-      const base = dom.chaoticCheck.checked ? 1.15 : (dom.helperCheck.checked ? .5 : 1);
+      const base = state.chaoticOn ? 1.15 : (state.helperOn ? .5 : 1);
       const gain = base * dt * Number(dom.speedInput.value);
       state.score += gain; state.safeAccum += gain;
     }
@@ -31,7 +31,7 @@ export function updateScore(t, dt, stackPos) {
   const scoreRadius = heaven ? world.lightRadius : 12;
   const inLight = len2(sub2(state.playerPos, stackPos)) <= scoreRadius;
   if (inLight) {
-    const base = dom.chaoticCheck.checked ? 1.15 : (dom.helperCheck.checked ? .5 : 1);
+    const base = state.chaoticOn ? 1.15 : (state.helperOn ? .5 : 1);
     const gain = base * dt * Number(dom.speedInput.value);
     state.score += gain; state.safeAccum += gain;
   }

@@ -3,6 +3,48 @@ import { phase, world, scale, MARKER_COLORS } from './config.js';
 import { w2v, polar, makeRing, makeCyl, len2, clamp } from './math.js';
 import { state, dom } from './state.js';
 
+// WoW-style raid marker billboard: canvas texture with a glowing symbol
+function makeMarkerSprite(i, colHex) {
+  const cvs = document.createElement('canvas'); cvs.width = cvs.height = 128;
+  const ctx = cvs.getContext('2d');
+  const col = '#' + colHex.toString(16).padStart(6, '0');
+  ctx.translate(64, 64);
+  ctx.beginPath();
+  if (i === 0) {          // star
+    for (let k = 0; k < 10; k++) {
+      const r = k % 2 === 0 ? 40 : 17, a = -Math.PI / 2 + k * Math.PI / 5;
+      ctx[k ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+  } else if (i === 1) {   // circle
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+  } else if (i === 2) {   // diamond
+    ctx.moveTo(0, -42); ctx.lineTo(28, 0); ctx.lineTo(0, 42); ctx.lineTo(-28, 0); ctx.closePath();
+  } else {                // triangle
+    ctx.moveTo(0, -36); ctx.lineTo(34, 28); ctx.lineTo(-34, 28); ctx.closePath();
+  }
+  ctx.shadowColor = col; ctx.shadowBlur = 26; ctx.fillStyle = col;
+  ctx.fill(); ctx.fill(); // double fill intensifies the glow
+  ctx.shadowBlur = 0; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.stroke();
+  const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvs), transparent: true, depthWrite: false });
+  const spr = new THREE.Sprite(mat);
+  spr.scale.set(1.4, 1.4, 1);
+  return spr;
+}
+
+// Reposition markers along the raid path; the tank stands slightly in front
+// of the raid, so its markers sit at offTankDistance instead of stackDistance.
+export function setMarkerPositions(dist) {
+  state.worldMarkers.forEach(m => {
+    const pos = polar(m.angle, dist);
+    m.beamOut.position.copy(w2v(pos, 1.3));
+    m.beamIn.position.copy(w2v(pos, 1.3));
+    m.sprite.position.copy(w2v(pos, 2.9));
+    m.ring.position.copy(w2v(pos, .03));
+  });
+}
+
 export function initScene() {
   // ── Three.js ─────────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
@@ -21,17 +63,21 @@ export function initScene() {
   state.renderer = renderer;
   state.keyLight = keyLight;
 
-  // ── World markers ─────────────────────────────────────────────────────────
-  const wmpPositions = [0, 1, 2, 3].map(i => polar(-Math.PI / 2 + phase.raidDirection * i * phase.raidAdvanceDegrees * Math.PI / 180, world.stackDistance));
-  const worldMarkers = wmpPositions.map((pos, i) => {
+  // ── World markers — WoW-style: floating billboard symbol + light beam ────
+  const markerAngles = [0, 1, 2, 3].map(i => -Math.PI / 2 + phase.raidDirection * i * phase.raidAdvanceDegrees * Math.PI / 180);
+  const worldMarkers = markerAngles.map((angle, i) => {
     const col = MARKER_COLORS[i];
-    const mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .35, transparent: true, opacity: .5, roughness: .4 });
-    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(.44, .52, 2.1, 16), mat);
-    mesh.position.copy(w2v(pos, 1.05)); scene.add(mesh);
-    const ring = makeRing(16, col, .85, .055); ring.position.copy(w2v(pos, .03)); scene.add(ring);
-    return { mesh, ring, mat, ringMat: ring.material };
+    const beamOut = new THREE.Mesh(new THREE.CylinderGeometry(.62, .82, 2.6, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    const beamIn = new THREE.Mesh(new THREE.CylinderGeometry(.3, .44, 2.6, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    const sprite = makeMarkerSprite(i, col);
+    const ring = makeRing(16, col, .85, .055);
+    [beamOut, beamIn, sprite, ring].forEach(o => scene.add(o));
+    return { angle, beamOut, beamIn, sprite, ring, ringMat: ring.material };
   });
   state.worldMarkers = worldMarkers;
+  setMarkerPositions(world.stackDistance);
 
   // ── Floor / room ──────────────────────────────────────────────────────────
   const floorMesh = new THREE.Mesh(new THREE.CylinderGeometry(world.roomRadius * scale, world.roomRadius * scale, .05, 160),
@@ -93,9 +139,10 @@ export function initScene() {
     });
     for (let i = 0; i < 17; i++) {
       const isSP = i < 3, col = isSP ? 0x5599ff : 0x4466bb, emis = isSP ? 0x102244 : 0x0a1122;
-      const mesh = makeCyl(col, emis, .18, .18, .65); scene.add(mesh);
+      const h = .5 + Math.random() * .3; // slight per-player height variation
+      const mesh = makeCyl(col, emis, .18, .18, h); scene.add(mesh);
       aiPlayers.push({
-        mesh, spIndex: isSP ? i : null, baseOffset: offsets[i] || { x: 0, y: 0 },
+        mesh, baseY: h / 2 + .005, spIndex: isSP ? i : null, baseOffset: offsets[i] || { x: 0, y: 0 },
         wobblePhase: i * .91, wobbleAmp: 0.7, currentPos: { x: 0, y: -world.stackDistance },
         moveSpeedVar: (Math.random() * 2 - 1) * 0.1
       });
