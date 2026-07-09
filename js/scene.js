@@ -243,18 +243,17 @@ export function initScene() {
 // ── Camera — WoW-style orbit around the player ───────────────────────────
 export function camForward() { return { x: Math.sin(state.camYaw), y: Math.cos(state.camYaw) }; }
 
-export function updateCamera(liftY, snap = false) {
+export function updateCamera(liftY) {
   const dist = Number(dom.camDistInput.value);
   const ref = len2(state.playerPos) < 1 ? { x: 0, y: -world.stackDistance } : state.playerPos;
   const fwd = camForward();
   const horiz = dist * Math.cos(state.camPitch);
   const target = w2v(ref, 1.15 + liftY);
-  const desired = new THREE.Vector3(
+  // Rigid follow — WoW's camera tracks mouse and player movement with no smoothing
+  state.camera.position.set(
     target.x - fwd.x * horiz,
     1.15 + liftY * .35 + dist * Math.sin(state.camPitch),
     target.z - fwd.y * horiz);
-  if (snap) state.camera.position.copy(desired);
-  else state.camera.position.lerp(desired, .25);
   state.camera.lookAt(target.x, target.y, target.z);
 }
 

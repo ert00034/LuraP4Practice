@@ -85,7 +85,7 @@ function resetSim() {
   document.getElementById('def-charges').classList.remove('show');
   document.getElementById('def-bar-wrap').classList.remove('show');
   state.running = false; dom.playBtn.textContent = "Pause";
-  state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0, true); state.last = performance.now();
+  state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0); state.last = performance.now();
 }
 
 // Main menu: full reset back to the role-select overlay
@@ -305,5 +305,5 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-updateCamera(0, true);
+updateCamera(0);
 requestAnimationFrame(frame);

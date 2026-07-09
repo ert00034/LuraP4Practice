@@ -55,7 +55,7 @@
 
     /* Mode select overlay */
     #mode-select{position:fixed;inset:0;z-index:200;
-      background:rgb(6 8 18/97%);backdrop-filter:blur(4px);
+      background:rgb(6 8 18);
       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
     #mode-select h2{font-size:26px;font-weight:900;color:#fff;margin:0;text-align:center;letter-spacing:.06em;}
     #mode-select .mode-sub{color:var(--muted);font-size:13px;margin:0;text-align:center;}
