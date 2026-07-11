@@ -1,4 +1,4 @@
-import { phase, world } from '../config.js';
+import { phase, phase3, world } from '../config.js';
 import { sub2, len2 } from '../math.js';
 import { state, dom } from '../state.js';
 import { currentHeaven, activeStarsplinterCycle } from '../timing.js';
@@ -37,36 +37,60 @@ export function updateScore(t, dt, stackPos) {
   }
 }
 
+// Grades are fractions of the maximum accruable safe time for the phase.
+// P4's window is 78s (90 minus cast+stun), which reproduces the original
+// absolute thresholds (70/55/40/25/10) exactly.
 export function gradeScore(s) {
-  if (s >= 70) return { g: 'A+', cls: 'gAp', desc: 'Flawless' };
-  if (s >= 55) return { g: 'A', cls: 'gA', desc: 'Excellent' };
-  if (s >= 40) return { g: 'B', cls: 'gB', desc: 'Good' };
-  if (s >= 25) return { g: 'C', cls: 'gC', desc: 'Adequate' };
-  if (s >= 10) return { g: 'D', cls: 'gD', desc: 'Rough' };
+  const maxSafe = state.selectedPhase === 'p3'
+    ? phase3.duration - phase3.introCast
+    : phase.duration - phase.reintegrationCast - phase.stunDuration;
+  const f = s / maxSafe;
+  if (f >= .897) return { g: 'A+', cls: 'gAp', desc: 'Flawless' };
+  if (f >= .705) return { g: 'A', cls: 'gA', desc: 'Excellent' };
+  if (f >= .512) return { g: 'B', cls: 'gB', desc: 'Good' };
+  if (f >= .320) return { g: 'C', cls: 'gC', desc: 'Adequate' };
+  if (f >= .128) return { g: 'D', cls: 'gD', desc: 'Rough' };
   if (s >= 0) return { g: 'F', cls: 'gF', desc: 'Failed' };
   return { g: 'F-', cls: 'gFm', desc: 'Catastrophic' };
+}
+
+// Scoreboard breakdown rows per phase: [penaltyKey, label]. The first row is
+// always the positive safe-time accumulator.
+const BREAKDOWN_ROWS = {
+  p4: [
+    ['sliceOthers', 'Players sliced (−10 each)'],
+    ['sliced', 'Got sliced (−10 each)'],
+    ['munched', 'Got munched (−5 each)'],
+    ['leftLight', 'Left the light zone (−100 each)'],
+    ['zapped', 'Got zapped (−100 each)'],
+    ['wrongSide', 'Wrong side on Starsplinter (−15 each)'],
+    ['noDefensive', 'Soaked without defensive (−5 each)'],
+    ['noEabClear', 'Adds hit raid — no EAB (−75 each)'],
+    ['addsHnH', 'Adds hit raid in Heaven &amp; Hell (−15 each)'],
+  ],
+  p3: [], // filled in by the Phase 3 module registration below
+};
+const SAFE_LABELS = { p4: 'Time safe in light circle', p3: 'Time alive & in position' };
+export function registerBreakdown(phaseKey, rows, safeLabel) {
+  BREAKDOWN_ROWS[phaseKey] = rows; SAFE_LABELS[phaseKey] = safeLabel;
 }
 
 export function showScoreboard() {
   const rounded = Math.round(state.score);
   const gr = gradeScore(rounded);
-  const modeLabels = { easy: '⭐ EASY MODE', normal: 'NORMAL', chaotic: '🔥 CHAOTIC PHASE 4 ATTEMPT' };
-  const roleSuffix = { light: ' · LIGHT HOLDER', tank: ' · ADD TANK', dps: '' };
+  const p3 = state.selectedPhase === 'p3';
+  const chaoticLabel = p3 ? '🔥 CHAOTIC PHASE 3 ATTEMPT' : '🔥 CHAOTIC PHASE 4 ATTEMPT';
+  const modeLabels = { easy: '⭐ EASY MODE', normal: 'NORMAL', chaotic: chaoticLabel };
+  const roleSuffix = p3 ? {} : { light: ' · LIGHT HOLDER', tank: ' · ADD TANK', dps: '' };
   const smodeEl = document.getElementById("smode");
   smodeEl.textContent = (modeLabels[state.selectedMode] || 'NORMAL') + (roleSuffix[state.selectedRole] || '');
   smodeEl.style.color = state.selectedMode === 'chaotic' ? '#ff9f1c' : state.selectedMode === 'easy' ? '#a8e563' : 'var(--muted)';
   document.getElementById("sgrade").textContent = gr.g;
   document.getElementById("sgrade").className = `score-grade ${gr.cls}`;
   document.getElementById("sfinal").textContent = `${rounded} pts — ${gr.desc}`;
-  document.getElementById("sr-safe").textContent = `+${Math.round(state.safeAccum)}`;
-  document.getElementById("sr-slice").textContent = `−${state.penalties.sliceOthers || 0}`;
-  document.getElementById("sr-sliced").textContent = `−${state.penalties.sliced || 0}`;
-  document.getElementById("sr-munch").textContent = `−${state.penalties.munched || 0}`;
-  document.getElementById("sr-leftlight").textContent = `−${state.penalties.leftLight || 0}`;
-  document.getElementById("sr-zap").textContent = `−${state.penalties.zapped || 0}`;
-  document.getElementById("sr-wrongside").textContent = `−${state.penalties.wrongSide || 0}`;
-  document.getElementById("sr-nodef").textContent = `−${state.penalties.noDefensive || 0}`;
-  document.getElementById("sr-noeab").textContent = `−${state.penalties.noEabClear || 0}`;
-  document.getElementById("sr-addshnh").textContent = `−${state.penalties.addsHnH || 0}`;
+  const rows = [`<div class="score-row"><span>${SAFE_LABELS[state.selectedPhase]}</span><span class="val pos">+${Math.round(state.safeAccum)}</span></div>`];
+  for (const [key, label] of BREAKDOWN_ROWS[state.selectedPhase])
+    rows.push(`<div class="score-row"><span>${label}</span><span class="val neg">−${state.penalties[key] || 0}</span></div>`);
+  document.getElementById("score-breakdown").innerHTML = rows.join('');
   dom.scoreboardEl.classList.add("show"); state.scoreboardShown = true;
 }

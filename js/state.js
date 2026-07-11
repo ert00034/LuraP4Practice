@@ -35,10 +35,17 @@ export const dom = {
   penaltyFlashEl: document.getElementById("penalty-flash"),
   modeSelectEl: document.getElementById("mode-select"),
   legendEl: document.querySelector(".legend"),
-  neHeavenEl: document.getElementById("ne-heaven"),
-  neStarsEl: document.getElementById("ne-stars"),
+  neAEl: document.getElementById("ne-a"),
+  neBEl: document.getElementById("ne-b"),
+  neLabelAEl: document.getElementById("ne-label-a"),
+  neLabelBEl: document.getElementById("ne-label-b"),
   raidNoteEl: document.getElementById("raid-note"),
   raidFramesEl: document.getElementById("raid-frames"),
+  melodyEl: document.getElementById("melody"),
+  melodyNotesEl: document.getElementById("melody-notes"),
+  yourRuneEl: document.getElementById("your-rune"),
+  yrGlyphEl: document.getElementById("yr-glyph"),
+  yrSpotEl: document.getElementById("yr-spot"),
 };
 
 export const state = {
@@ -52,7 +59,8 @@ export const state = {
 
   playerSplinterForceExplodeAt: Infinity,
   selectedMode: 'normal',
-  selectedRole: 'dps', // 'dps' | 'light' | 'tank'
+  selectedPhase: 'p4', // 'p3' | 'p4'
+  selectedRole: 'dps', // 'dps' | 'light' | 'tank' (P4 only)
   helperOn: false,  // easy mode: movement helper ring, 0.5× score
   chaoticOn: false, // chaotic mode: distractions, raid deaths, 1.15× score
   strafeKeys: 'ad', // 'ad' | 'qe' — which keys strafe left/right
@@ -80,6 +88,10 @@ export const state = {
   // ── Splinter cycle caches ────────────────────────────────────────────
   cycleAssignments: {}, cycleOrientations: {}, cycleDelays: {}, cycleAdjustedDrops: {}, cycleFakeouts: {}, cycleSafeDrops: {},
   cyclePlayerOrientations: {},
+
+  // ── Phase 3 (filled by resetP3 / initP3Scene in mechanics/p3.js) ─────
+  p3: null,
+  p3Formation: null,
 
   // ── AI wander ────────────────────────────────────────────────────────
   nextWanderTime: 20 + Math.random() * 12,

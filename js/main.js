@@ -15,8 +15,9 @@ import { checkExplosions, checkOnYouSP, checkZap, checkMunch, checkLeftLight } f
 import { updateScore, showScoreboard } from './mechanics/score.js';
 import {
   updateRaidCall, updateHud, updateCastBar, updateBossCastBar, updateStunHints, updateNextEvents,
-  buildStunHints, buildRaidUI, buildEasterEggSchedule, updateDefUI, updateChaoticOverlays
+  buildStunHints, buildRaidUI, buildEasterEggSchedule, updateDefUI, updateChaoticOverlays, setNextEventLabels
 } from './ui.js';
+import { updateP3Frame, resetP3, initP3Scene, phase3Duration } from './mechanics/p3.js';
 
 // ── Scene setup ──────────────────────────────────────────────────────────
 initScene();
@@ -83,6 +84,7 @@ function resetSim() {
   state.prevScore = 0; state.penaltyFlashExpiry = -999; state.spFlashExpiry = -999; dom.penaltyFlashEl.classList.remove("on"); dom.spFlashEl.classList.remove("on");
   state.eabCooldownUntil = -Infinity; state.eabConePos = null; state.eabConeExpiry = -Infinity; state.eabConeFired = false;
   state.defCharges = 3; state.defExpiry = -Infinity; state.lightMovePenaltyExpiry = -Infinity;
+  resetP3();
   document.getElementById('eab-icon').classList.remove('show');
   document.getElementById('def-charges').classList.remove('show');
   document.getElementById('def-bar-wrap').classList.remove('show');
@@ -90,10 +92,11 @@ function resetSim() {
   state.camYaw = 0; state.camPitch = CAM_PITCH; updateCamera(0); state.last = performance.now();
 }
 
-// Main menu: full reset back to the role-select overlay
+// Main menu: full reset back to the phase-select overlay
 function goMainMenu() {
   resetSim();
-  document.getElementById('role-step').style.display = 'flex';
+  document.getElementById('phase-step').style.display = 'flex';
+  document.getElementById('role-step').style.display = 'none';
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('guide-step').style.display = 'none';
   document.getElementById('eab-bind-row').style.display = 'none';
@@ -109,29 +112,72 @@ function quickReset() {
 }
 
 // ── Mode / role selection ────────────────────────────────────────────────
+const LEGEND_P4 = `<strong>White arrow:</strong> you &nbsp;|&nbsp; <strong>Blue:</strong> raid &nbsp;|&nbsp;
+    <strong>Gold:</strong> OT + cone &nbsp;|&nbsp; <strong>Yellow disc:</strong> light safe zone &nbsp;|&nbsp;
+    <strong>Cyan ring:</strong> your Starsplinter target &nbsp;|&nbsp;
+    Orientation A/B rotates shard pattern 45°`;
+const LEGEND_P3 = `<strong>White arrow:</strong> you &nbsp;|&nbsp; <strong>Teal half:</strong> your dimension — stay here &nbsp;|&nbsp;
+    <strong>Purple half:</strong> other dimension (ghosts) — never cross the rift &nbsp;|&nbsp;
+    <strong>Glyph discs:</strong> per-symbol rune spots &nbsp;|&nbsp;
+    <strong>Dark orbs:</strong> constellation — dodge impacts &amp; beams &nbsp;|&nbsp;
+    <strong>White ring:</strong> your partner is ready`;
+
 function startMode(mode) {
   state.selectedMode = mode;
   state.helperOn = (mode === 'easy');
   state.chaoticOn = (mode === 'chaotic');
-  setMarkerPositions(state.selectedRole === 'tank' ? world.offTankDistance : world.stackDistance);
+  dom.legendEl.innerHTML = state.selectedPhase === 'p3' ? LEGEND_P3 : LEGEND_P4;
   buildEasterEggSchedule();
   buildStunHints();
   // Raid note + frames overlay: shown on normal and chaotic, not easy.
   document.getElementById('raid-overlay').style.display = mode === 'easy' ? 'none' : 'flex';
   dom.modeSelectEl.style.display = 'none';
-  state.time = phase.reintegrationCast; // skip the reintegration cast bar straight to the stun
-  if (state.selectedRole === 'tank') {
-    document.getElementById('eab-icon').classList.add('show');
-    document.getElementById('def-charges').classList.add('show');
-    state.defCharges = 3; state.defExpiry = -Infinity; updateDefUI();
+  if (state.selectedPhase === 'p3') {
+    initP3Scene();
+    // The raid note holds P4 starsplinter assignments — irrelevant in P3.
+    dom.raidNoteEl.style.display = 'none';
+    state.time = 0;
+  } else {
+    dom.raidNoteEl.style.display = '';
+    setMarkerPositions(state.selectedRole === 'tank' ? world.offTankDistance : world.stackDistance);
+    setNextEventLabels('Heaven &amp; Hell', 'Starsplinters');
+    state.time = phase.reintegrationCast; // skip the reintegration cast bar straight to the stun
+    if (state.selectedRole === 'tank') {
+      document.getElementById('eab-icon').classList.add('show');
+      document.getElementById('def-charges').classList.add('show');
+      state.defCharges = 3; state.defExpiry = -Infinity; updateDefUI();
+    }
   }
   state.running = true; dom.playBtn.textContent = "Pause"; state.last = performance.now();
 }
 
+// ── Phase selection ──────────────────────────────────────────────────────
+function selectPhase(p) {
+  state.selectedPhase = p;
+  document.getElementById('phase-step').style.display = 'none';
+  if (p === 'p4') {
+    document.getElementById('role-step').style.display = 'flex';
+  } else {
+    // Phase 3 is one shared raider experience — skip role select.
+    state.selectedRole = 'dps';
+    document.getElementById('diff-title').textContent = "L'ura — Phase 3";
+    document.getElementById('diff-role-label').textContent = 'Raider · Choose difficulty';
+    document.getElementById('chaotic-title').textContent = '🔥 Chaotic Phase 3 Attempt';
+    document.getElementById('eab-bind-row').style.display = 'none';
+    document.getElementById('btn-back-role').textContent = '← Change Phase';
+    document.getElementById('diff-step').style.display = 'flex';
+  }
+}
+document.getElementById("btn-phase-p3").addEventListener("click", () => selectPhase('p3'));
+document.getElementById("btn-phase-p4").addEventListener("click", () => selectPhase('p4'));
+
 const roleLabels = { 'dps': 'DPS / Healer', 'light': 'Light Holder', 'tank': 'Add Tank' };
 function selectRole(role) {
   state.selectedRole = role;
+  document.getElementById('diff-title').textContent = "L'ura — Phase 4";
   document.getElementById('diff-role-label').textContent = roleLabels[role] + ' · Choose difficulty';
+  document.getElementById('chaotic-title').textContent = '🔥 Chaotic Phase 4 Attempt';
+  document.getElementById('btn-back-role').textContent = '← Change Role';
   // The Add Tank keybind row lives on the difficulty screen, tank-only.
   document.getElementById('eab-bind-row').style.display = role === 'tank' ? 'flex' : 'none';
   document.getElementById('role-step').style.display = 'none';
@@ -140,16 +186,23 @@ function selectRole(role) {
 document.getElementById("btn-role-dps").addEventListener("click", () => selectRole('dps'));
 document.getElementById("btn-role-light").addEventListener("click", () => selectRole('light'));
 document.getElementById("btn-role-tank").addEventListener("click", () => selectRole('tank'));
+document.getElementById("btn-back-phase").addEventListener("click", () => {
+  document.getElementById('role-step').style.display = 'none';
+  document.getElementById('phase-step').style.display = 'flex';
+});
 document.getElementById("btn-back-role").addEventListener("click", () => {
   document.getElementById('diff-step').style.display = 'none';
-  document.getElementById('role-step').style.display = 'flex';
+  if (state.selectedPhase === 'p3') document.getElementById('phase-step').style.display = 'flex';
+  else document.getElementById('role-step').style.display = 'flex';
 });
 
 // ── Role guide screen ────────────────────────────────────────────────────
 document.getElementById("btn-guide").addEventListener("click", () => {
-  document.getElementById('guide-role-label').textContent = roleLabels[state.selectedRole] + ' · Guide';
+  const p3 = state.selectedPhase === 'p3';
+  document.getElementById('guide-title').textContent = p3 ? "L'ura — Phase 3" : "L'ura — Phase 4";
+  document.getElementById('guide-role-label').textContent = (p3 ? 'Raider' : roleLabels[state.selectedRole]) + ' · Guide';
   document.getElementById('guide-lines').innerHTML =
-    (STUN_HINTS[state.selectedRole] || STUN_HINTS.dps).map(l => `<div class="guide-line">${l}</div>`).join('');
+    (p3 ? STUN_HINTS.p3 : (STUN_HINTS[state.selectedRole] || STUN_HINTS.dps)).map(l => `<div class="guide-line">${l}</div>`).join('');
   document.getElementById('diff-step').style.display = 'none';
   document.getElementById('guide-step').style.display = 'flex';
 });
@@ -204,16 +257,35 @@ window.addEventListener("resize", () => {
 });
 
 // ── Frame ─────────────────────────────────────────────────────────────────
+// Shared shell: time advance, phase dispatch, overlays, render.
 function frame(now) {
   const dt = Math.min(.08, (now - state.last) / 1000); state.last = now;
   const simDt = state.running ? dt * Number(dom.speedInput.value) : 0;
+  const duration = state.selectedPhase === 'p3' ? phase3Duration : phase.duration;
   if (state.running) {
     state.time += simDt;
-    if (state.time >= phase.duration) {
-      state.time = phase.duration; state.running = false; dom.playBtn.textContent = "Play";
+    if (state.time >= duration) {
+      state.time = duration; state.running = false; dom.playBtn.textContent = "Play";
       if (!state.scoreboardShown) showScoreboard();
     }
   }
+  if (state.selectedPhase === 'p3') updateP3Frame(dt, simDt);
+  else updateP4Frame(dt, simDt);
+  // Legend shows only while paused mid-run
+  dom.legendEl.style.display = (!state.running && dom.modeSelectEl.style.display === 'none' && !state.scoreboardShown) ? 'block' : 'none';
+  if (state.time > state.messageExpiry) dom.messageEl.className = '';
+  if (state.score < state.prevScore) state.penaltyFlashExpiry = state.time + 0.15;
+  dom.penaltyFlashEl.classList.toggle("on", state.time < state.penaltyFlashExpiry);
+  dom.spFlashEl.classList.toggle("on", state.time < state.spFlashExpiry);
+  state.prevScore = state.score;
+  updateChaoticOverlays();
+  state.boss.rotation.y += simDt * .35;
+  state.renderer.render(state.scene, state.camera);
+  requestAnimationFrame(frame);
+}
+
+// ── Phase 4 per-frame update (original sim body) ─────────────────────────
+function updateP4Frame(dt, simDt) {
   const stackPos = raidPosAt(state.time), otPos = offTankPos(stackPos);
   const immunePosNow = immunityPos(state.time, stackPos);
   const liftY = stunLiftAt(state.time);
@@ -253,13 +325,7 @@ function frame(now) {
   updateStunHints(state.time);
   updateBossCastBar(state.time);
   updateCastBar(state.time);
-  // Legend shows only while paused mid-run
-  dom.legendEl.style.display = (!state.running && dom.modeSelectEl.style.display === 'none' && !state.scoreboardShown) ? 'block' : 'none';
   // reintHintEl opacity managed by updateStunHints
-  if (state.score < state.prevScore) state.penaltyFlashExpiry = state.time + 0.15;
-  dom.penaltyFlashEl.classList.toggle("on", state.time < state.penaltyFlashExpiry);
-  dom.spFlashEl.classList.toggle("on", state.time < state.spFlashExpiry);
-  state.prevScore = state.score;
   // EAB cooldown icon
   if (state.selectedRole === 'tank' && state.running) {
     const eabCvs = document.getElementById('eab-canvas');
@@ -316,13 +382,6 @@ function frame(now) {
     }
     checkLeftLight(state.time, stackPos);
   }
-
-  // ── Chaotic mode overlays ────────────────────────────────────────────────
-  updateChaoticOverlays();
-
-  state.boss.rotation.y += simDt * .35;
-  state.renderer.render(state.scene, state.camera);
-  requestAnimationFrame(frame);
 }
 
 updateCamera(0);

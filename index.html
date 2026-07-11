@@ -8,7 +8,19 @@
 </head>
 <body>
   <div id="mode-select">
-    <div id="role-step">
+    <div id="phase-step">
+      <h2>L'ura Practice</h2>
+      <p class="mode-sub">Choose a phase</p>
+      <button class="role-btn phase-p3" id="btn-phase-p3">
+        <span class="role-title">✦ Phase 3 — Midnight Falls</span>
+        <span class="role-desc">Death's Requiem symbols · Dark Constellation</span>
+      </button>
+      <button class="role-btn phase-p4" id="btn-phase-p4">
+        <span class="role-title">☄ Phase 4</span>
+        <span class="role-desc">Starsplinters · Heaven &amp; Hell</span>
+      </button>
+    </div>
+    <div id="role-step" style="display:none">
       <h2>L'ura — Phase 4</h2>
       <p class="mode-sub">Choose your role</p>
       <button class="role-btn role-dps" id="btn-role-dps">
@@ -23,9 +35,12 @@
         <span class="role-title">🛡 Add Tank</span>
         <span class="role-desc">Soak adds · Control the cone · 3 AI Starsplinters</span>
       </button>
+      <div class="aux-row">
+        <button class="aux-btn" id="btn-back-phase">← Change Phase</button>
+      </div>
     </div>
     <div id="diff-step" style="display:none">
-      <h2>L'ura — Phase 4</h2>
+      <h2 id="diff-title">L'ura — Phase 4</h2>
       <p class="mode-sub" id="diff-role-label">DPS / Healer · Choose difficulty</p>
       <div class="eab-row" id="eab-bind-row" style="display:none">
         <label>Extra Action:</label>
@@ -42,7 +57,7 @@
         <span class="mode-desc">No helper · Full score</span>
       </button>
       <button class="mode-btn mode-chaotic" id="btn-chaotic">
-        <span class="mode-title">🔥 Chaotic Phase 4 Attempt</span>
+        <span class="mode-title" id="chaotic-title">🔥 Chaotic Phase 4 Attempt</span>
         <span class="mode-desc">Distractions · Raid dies · 1.15× score</span>
       </button>
       <div class="aux-row">
@@ -51,7 +66,7 @@
       </div>
     </div>
     <div id="guide-step" style="display:none">
-      <h2>L'ura — Phase 4</h2>
+      <h2 id="guide-title">L'ura — Phase 4</h2>
       <p class="mode-sub" id="guide-role-label">DPS / Healer · Guide</p>
       <div class="guide-card">
         <div class="guide-heading">Your job</div>
@@ -82,8 +97,8 @@
     <div class="pill">Score <strong id="scorepill">0</strong></div>
   </div>
   <div id="next-events">
-    <div class="ne-item"><span class="ne-label">Heaven &amp; Hell</span><span class="ne-time" id="ne-heaven">—</span></div>
-    <div class="ne-item"><span class="ne-label">Starsplinters</span><span class="ne-time" id="ne-stars">—</span></div>
+    <div class="ne-item"><span class="ne-label" id="ne-label-a">Heaven &amp; Hell</span><span class="ne-time" id="ne-a">—</span></div>
+    <div class="ne-item"><span class="ne-label" id="ne-label-b">Starsplinters</span><span class="ne-time" id="ne-b">—</span></div>
   </div>
   <div id="raidcall">
     <div class="sp-slot" id="sp0"><div class="dir">⬅ LEFT</div><div class="lbl">Starsplinter 1</div></div>
@@ -95,8 +110,17 @@
     <div class="bignum" id="movecountdown">3</div>
   </div>
   <div id="castbar">
-    <div class="cast-label">REINTEGRATION</div>
+    <div class="cast-label" id="cast-label">REINTEGRATION</div>
     <div class="cast-track"><div class="cast-fill" id="castfill"></div></div>
+  </div>
+  <div id="melody">
+    <div class="melody-title">DEATH'S REQUIEM</div>
+    <div id="melody-notes"></div>
+  </div>
+  <div id="your-rune">
+    <span class="yr-label">YOUR RUNE</span>
+    <span class="yr-glyph" id="yr-glyph">◆</span>
+    <span class="yr-spot" id="yr-spot">SPOT 3</span>
   </div>
   <div id="message"></div>
 
@@ -106,18 +130,7 @@
       <div style="text-align:center;font-size:11px;letter-spacing:.1em;margin-bottom:4px;opacity:.6" id="smode">NORMAL</div>
       <div class="score-grade" id="sgrade">A+</div>
       <div class="score-pts">Score: <strong id="sfinal">0</strong></div>
-      <div class="score-breakdown">
-        <div class="score-row"><span>Time safe in light circle</span><span class="val pos" id="sr-safe">+0</span></div>
-        <div class="score-row"><span>Players sliced (−10 each)</span><span class="val neg" id="sr-slice">−0</span></div>
-        <div class="score-row"><span>Got sliced (−10 each)</span><span class="val neg" id="sr-sliced">−0</span></div>
-        <div class="score-row"><span>Got munched (−5 each)</span><span class="val neg" id="sr-munch">−0</span></div>
-        <div class="score-row"><span>Left the light zone (−100 each)</span><span class="val neg" id="sr-leftlight">−0</span></div>
-        <div class="score-row"><span>Got zapped (−100 each)</span><span class="val neg" id="sr-zap">−0</span></div>
-        <div class="score-row"><span>Wrong side on Starsplinter (−15 each)</span><span class="val neg" id="sr-wrongside">−0</span></div>
-        <div class="score-row"><span>Soaked without defensive (−5 each)</span><span class="val neg" id="sr-nodef">−0</span></div>
-        <div class="score-row"><span>Adds hit raid — no EAB (−75 each)</span><span class="val neg" id="sr-noeab">−0</span></div>
-        <div class="score-row"><span>Adds hit raid in Heaven &amp; Hell (−15 each)</span><span class="val neg" id="sr-addshnh">−0</span></div>
-      </div>
+      <div class="score-breakdown" id="score-breakdown"></div>
       <div class="score-actions">
         <button id="sbQuickReset">Quick Reset</button>
         <button id="sbRestart">Main Menu</button>

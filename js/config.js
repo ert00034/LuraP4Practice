@@ -15,6 +15,70 @@ export const world = {
   offTankDistance: 151, lightRadius: 60, shardLength: 90, coneLength: 109
 };
 export const scale = 0.052;
+
+// ── Phase 3 — "Midnight Falls" (Death's Requiem + Dark Constellation) ────
+// Timings approximate the Mythic cadence: marks → first constellation set
+// ~4s later → ~8s window to finish the rune chain before the next set.
+// Distances are world units (world.lightRadius 60 = the 12yd Torchbearer
+// aura, so 1yd ≈ 5 units).
+export const phase3 = {
+  duration: 102,
+  introCast: 4,                    // "Severance" opener
+  // Death's Requiem memory games — casts at 8 / 38 / 68
+  firstRequiem: 8, requiemSpacing: 30,
+  requiemCast: 2,                  // boss cast; marks apply at cast end
+  melodyNoteTime: 0.8,             // seconds per revealed note (0.55 chaotic)
+  melodyLinger: 1.2,               // normal: melody stays this long after reveal
+  requiemDeadline: 12,             // marks → all runes popped by here, or Dissonance
+  chainStart: 5.5,                 // AI holder of rune 1 waits out the first set
+  runeCount: 5,
+  collideRadius: 10,               // touch distance (~2yd)
+  partnerStandOff: 20,             // partner waits this far outside the spot
+  //   (must exceed collideRadius + the 6-unit settle tolerance, so a settling
+  //   partner can never brush a player standing on the spot)
+  resonanceRadius: 15,             // 3yd splash on each pop
+  spotArcRadius: 110,              // numbered rune spots, arc on the player's side
+  spotArcSpan: 80,                 // degrees across the 5 spots
+  spotArcCenter: 205,              // arc centred deep in the player's WEST dimension
+  // ── Severance: the room splits into two dimensions at the boss meridian ──
+  // (x = 0, running north-south). The player belongs to the WEST (x<0) half;
+  // the rift down the middle is lethal to cross ("Dimension Breach").
+  severance: {
+    clampMargin: 4,                // hard rift wall this far west of x=0
+    breachPenalty: 75, breachThrottle: 2.5,
+    westAI: 9,                     // raiders in the player's dimension (rune game)
+    wallHeight: 3,
+    westColor: 0x2ad4c4, eastColor: 0xb060ff,
+  },
+  // Dark Constellation — near-constant pressure: with the in-game sets this
+  // lands a wave every ~7-8s for the whole phase (impacts at 14, 22, 30, 37,
+  // 44, 52, 60, 67, 74, 82, 90, 97), matching the live Mythic per-side cadence.
+  standaloneWaves: [27, 34, 57, 64, 87, 94], // boss-cast waves between games
+  standaloneCast: 3,               // Mythic cast time (12.0.7 hotfix value)
+  gameSetOffsets: [4, 12],         // per game: sets impact at marks+4 / marks+12
+  starCount: 30,
+  starImpactRadius: 12.5,          // 2.5yd
+  starMinR: 40, starMaxR: 190, starMinSep: 32,
+  starFallTime: 2.5,               // telegraph + falling orb before impact
+  beamDelay: 1.2,                  // beams turn deadly this long after impact
+  beamFlashes: 3, beamFlashPeriod: 1.0,
+  beamHalfWidth: 5,                // ~1yd
+  starFade: 0.8,                   // fade-out after the last flash
+  // Raid formation / scoring
+  spreadRadius: 140, spreadBand: 45,
+};
+// The five Dark Rune symbols (Circle, Cross, Diamond, T, Triangle) with
+// raid-marker-ish colours; T has no marker in-game (Square stands in).
+export const P3_RUNES = [
+  { key: 'circle', label: 'CIRCLE', glyph: '●', color: 0xff8c00 },
+  { key: 'cross', label: 'CROSS', glyph: '✖', color: 0xff3344 },
+  { key: 'diamond', label: 'DIAMOND', glyph: '◆', color: 0xaa44ff },
+  { key: 'tshape', label: 'T-RUNE', glyph: '⊤', color: 0x3388ff },
+  { key: 'triangle', label: 'TRIANGLE', glyph: '▲', color: 0x44ff88 },
+];
+export const P3_CHAOS_MELODY_LINES = [
+  'WAS THAT CIRCLE OR DIAMOND FIRST??', 'WHO HAS CROSS?? CROSS??',
+  'JUST TOUCH SOMEONE!!', 'NO NOT YET!! WAIT!!', 'ITS REVERSED THIS TIME (it is not)'];
 export const splinterSides = [1, -1, 1];
 export const splinterProfiles = [{ tangential: 46, radial: 13 }, { tangential: 58, radial: 14 }, { tangential: 56, radial: 10 }];
 export const immunityColors = [0xaad372, 0xffd45a, 0xff89c2];
@@ -71,6 +135,17 @@ export const STUN_HINTS = {
     'Use \'The Last Light\' action to clear adds in front of you.',
     'Use a defensive to soak any adds that will hit the group.',
     'Move during Heaven &amp; Hell and help to soak adds.'
+  ],
+  p3: [
+    'Severance splits the room in two — you belong to the <strong>WEST</strong> half.',
+    'Never cross the glowing rift down the middle. Touching it is a Dimension Breach.',
+    'Watch the melody — remember where <strong>your</strong> rune sits in the order.',
+    'Runes are private — you can\'t see anyone else\'s symbol. Trust the spots.',
+    'Move to the numbered spot matching your rune\'s position (1–5).',
+    'On your turn, run in and touch the next spot\'s player. In order only!',
+    'Touching a marked player out of order is Dissonance — don\'t.',
+    'Dodge the falling dark stars, and the beams linking each star to its nearest neighbour.',
+    'Finish the rune chain before the next constellation goes off.'
   ],
   chaotic: [
     'You have selected Chaos Mode. Good Luck.',

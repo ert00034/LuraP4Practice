@@ -102,14 +102,19 @@ export function updateBossCastBar(t) {
 
 // ── Next-event countdowns (under the HUD pills) ───────────────────────────
 function fmtSecs(x) { return x == null ? '—' : `${x.toFixed(1)}s`; }
+// Labels are set per phase on start (setNextEventLabels); slot A/B meaning
+// depends on the phase (P4: Heaven & Hell / Starsplinters).
+export function setNextEventLabels(a, b) {
+  dom.neLabelAEl.innerHTML = a; dom.neLabelBEl.innerHTML = b;
+}
 export function updateNextEvents(t) {
   const h = currentHeaven(t);
-  dom.neHeavenEl.textContent = h ? 'NOW' : fmtSecs(nextHeavenIn(t));
-  dom.neHeavenEl.classList.toggle('imminent', !h && (nextHeavenIn(t) ?? 99) <= 5);
+  dom.neAEl.textContent = h ? 'NOW' : fmtSecs(nextHeavenIn(t));
+  dom.neAEl.classList.toggle('imminent', !h && (nextHeavenIn(t) ?? 99) <= 5);
   const sc = activeStarsplinterCycle(t);
   const starsActive = sc && t >= sc.start && t <= sc.end;
-  dom.neStarsEl.textContent = starsActive ? 'NOW' : fmtSecs(nextStarsplinterIn(t));
-  dom.neStarsEl.classList.toggle('imminent', !starsActive && (nextStarsplinterIn(t) ?? 99) <= 5);
+  dom.neBEl.textContent = starsActive ? 'NOW' : fmtSecs(nextStarsplinterIn(t));
+  dom.neBEl.classList.toggle('imminent', !starsActive && (nextStarsplinterIn(t) ?? 99) <= 5);
 }
 
 // ── Cast bar ─────────────────────────────────────────────────────────────
@@ -159,7 +164,7 @@ export function updateRaidCall(t) {
       });
     } else dom.raidcallEl.classList.remove("show");
   }
-  if (state.time > state.messageExpiry) dom.messageEl.className = '';
+  // (message expiry is cleared in the shared frame shell in main.js)
 }
 
 export function updateHud(t) {

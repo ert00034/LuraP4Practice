@@ -52,6 +52,32 @@
     .sp-slot.stepping .dir,.sp-slot.stepping .lbl{color:var(--gold);}
     .sp-slot.stepping{border-color:var(--gold);background:rgb(255 212 90/12%);}
 
+    /* Phase 3 — Death's Requiem melody bar + private-rune pill */
+    #melody{position:fixed;top:68px;left:50%;transform:translateX(-50%);
+      display:flex;flex-direction:column;align-items:center;gap:5px;
+      background:rgb(4 6 16/86%);border:1px solid rgb(192 132 252/35%);
+      border-radius:10px;padding:8px 14px;z-index:4;pointer-events:none;
+      opacity:0;transition:opacity .25s;}
+    #melody.show{opacity:1;}
+    .melody-title{font-size:10px;font-weight:700;color:#c084fc;letter-spacing:.16em;}
+    #melody-notes{display:flex;gap:8px;}
+    .melody-note{width:44px;height:50px;border:1px solid rgb(255 255 255/14%);border-radius:7px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+      opacity:.18;transform:scale(.9);transition:all .22s;}
+    .melody-note.lit{opacity:1;transform:scale(1);border-color:rgb(255 255 255/35%);
+      box-shadow:0 0 14px rgb(192 132 252/25%);}
+    .melody-note.done{opacity:.35;}
+    .mn-glyph{font-size:24px;font-weight:900;line-height:1;text-shadow:0 0 12px currentColor;}
+    .mn-idx{font-size:9px;color:var(--muted);font-weight:700;}
+    /* Docked under the next-events panel, clear of the centre message lane */
+    #your-rune{position:fixed;top:116px;left:16px;
+      display:flex;align-items:center;gap:8px;z-index:4;pointer-events:none;
+      background:rgb(4 6 16/86%);border:1px solid rgb(255 255 255/16%);
+      border-radius:8px;padding:6px 12px;opacity:0;transition:opacity .25s;}
+    #your-rune.show{opacity:1;}
+    .yr-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.12em;}
+    .yr-glyph{font-size:22px;font-weight:900;line-height:1;text-shadow:0 0 12px currentColor;}
+    .yr-spot{font-size:12px;font-weight:800;color:#fff;letter-spacing:.05em;}
     #movecall{position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);
       text-align:center;z-index:4;pointer-events:none;opacity:0;transition:opacity .18s;}
     #movecall.show{opacity:1;}
@@ -85,12 +111,14 @@
     .mode-normal:hover{background:rgb(133 216 255/14%);}
     .mode-chaotic{border-color:#ff9f1c;color:#ff9f1c;}
     .mode-chaotic:hover{background:rgb(255 159 28/14%);}
-    /* Role selector */
-    #role-step,#diff-step,#guide-step{display:flex;flex-direction:column;align-items:center;gap:14px;}
+    /* Phase / role selector */
+    #phase-step,#role-step,#diff-step,#guide-step{display:flex;flex-direction:column;align-items:center;gap:14px;}
     .role-btn{width:280px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;
       border:2px solid;cursor:pointer;text-align:left;transition:all .15s;background:transparent;font-family:inherit;}
     .role-btn .role-title{display:block;font-size:14px;}
     .role-btn .role-desc{display:block;font-size:11px;font-weight:400;margin-top:3px;opacity:.75;}
+    .phase-p3{border-color:#c084fc;color:#c084fc;}.phase-p3:hover{background:rgb(192 132 252/14%);}
+    .phase-p4{border-color:#85d8ff;color:#85d8ff;}.phase-p4:hover{background:rgb(133 216 255/14%);}
     .role-dps{border-color:#85d8ff;color:#85d8ff;}.role-dps:hover{background:rgb(133 216 255/14%);}
     .role-light{border-color:#ffe066;color:#ffe066;}.role-light:hover{background:rgb(255 224 102/14%);}
     .role-tank{border-color:#ff7a45;color:#ff7a45;}.role-tank:hover{background:rgb(255 122 69/14%);}
